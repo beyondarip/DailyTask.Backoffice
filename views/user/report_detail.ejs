@@ -1,0 +1,300 @@
+<% const title='Detail Laporan' ; const pageTitle='Detail Laporan — ' + report.report_date; const activePage='dashboard'
+    ; const isFinance=['sales','marketing','finance','purchasing'].includes((report.department_name || ''
+    ).toLowerCase()); const isProduksi=(report.department_name || '' ).toLowerCase()==='produksi' ; %>
+    <%- include('../partials/layout_head') %>
+
+        <div class="header-with-back mb-4">
+            <a href="/dashboard" class="btn-back">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div>
+                <h1 class="h3 mb-1">Detail Laporan</h1>
+                <p class="text-muted small mb-0">ID: #<%= report.id %> | Diajukan pada: <%= new
+                            Date(report.created_at).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' , day: '2-digit'
+                            , month: '2-digit' , year: 'numeric' , hour: '2-digit' , minute: '2-digit' }) %>
+                </p>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-bold"><i class="fas fa-file-alt text-primary me-2"></i>Informasi Laporan</h5>
+                        <span
+                            class="badge-status <%= report.status === 'approved' || report.status === 'approve' ? 'badge-approved' : (report.status === 'rejected' || report.status === 'reject' ? 'badge-draft' : 'badge-submitted') %>">
+                            <%= report.status==='submitted' || report.status==='proses' ? 'Proses Review' :
+                                (report.status==='approved' || report.status==='approve' ? 'Telah Disetujui' :
+                                (report.status==='rejected' || report.status==='reject' ? 'Perlu Revisi' :
+                                report.status)) %>
+                        </span>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row mb-4 bg-light p-3 rounded">
+                            <div class="col-6 col-md-3">
+                                <label class="form-label text-muted small text-uppercase fw-bold">Tanggal</label>
+                                <div class="fw-bold">
+                                    <%= new Date(report.report_date).toLocaleDateString('id-ID', {day:'2-digit',
+                                        month:'long', year:'numeric'}) %>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label text-muted small text-uppercase fw-bold">Jam</label>
+                                <div class="fw-bold">
+                                    <%= report.report_time ? report.report_time.substring(0,5) : '-' %>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label text-muted small text-uppercase fw-bold">Divisi</label>
+                                <div class="fw-bold">
+                                    <%= report.department_name %>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label text-muted small text-uppercase fw-bold">User</label>
+                                <div class="fw-bold">
+                                    <%= user.full_name %>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label text-muted small text-uppercase fw-bold">Deskripsi
+                                Pekerjaan</label>
+                            <div class="p-3 border rounded bg-white" style="white-space: pre-wrap; line-height: 1.6;">
+                                <%= report.task_description %>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small text-uppercase fw-bold">Kendala /
+                                    Masalah</label>
+                                <div class="p-3 border rounded bg-white min-h-100">
+                                    <%= report.issue || '—' %>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small text-uppercase fw-bold">Solusi /
+                                    Tindakan</label>
+                                <div class="p-3 border rounded bg-white min-h-100">
+                                    <%= report.solution || '—' %>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label text-muted small text-uppercase fw-bold">Hasil / Pencapaian</label>
+                            <div class="p-3 border rounded bg-white">
+                                <%= report.result || '—' %>
+                            </div>
+                        </div>
+
+                        <% if (financeItems && financeItems.length> 0) { %>
+                            <div class="mb-4">
+                                <label class="form-label text-muted small text-uppercase fw-bold">Detail Keuangan /
+                                    Output</label>
+                                <div class="table-responsive border rounded mt-2">
+                                    <table class="table table-hover mb-0">
+                                        <thead class="bg-light">
+                                            <tr>
+                                                <th class="ps-3">Nama Item</th>
+                                                <th class="text-end">Qty</th>
+                                                <% if (!isProduksi) { %>
+                                                    <th class="text-end">Harga Satuan</th>
+                                                    <th class="text-end pe-3">Total</th>
+                                                    <% } %>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% financeItems.forEach(item=> { %>
+                                                <tr>
+                                                    <td class="ps-3">
+                                                        <%= item.item_name %>
+                                                    </td>
+                                                    <td class="text-end">
+                                                        <%= item.qty %>
+                                                    </td>
+                                                    <% if (!isProduksi) { %>
+                                                        <td class="text-end">Rp <%=
+                                                                parseFloat(item.unit_price).toLocaleString('id-ID') %>
+                                                        </td>
+                                                        <td class="text-end fw-bold pe-3">Rp <%=
+                                                                parseFloat(item.total_price).toLocaleString('id-ID') %>
+                                                        </td>
+                                                        <% } %>
+                                                </tr>
+                                                <% }) %>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <% } %>
+
+                                <% if (typeof attachments !=='undefined' && attachments.length> 0) { %>
+                                    <div class="mb-4">
+                                        <div class="form-label text-muted small text-uppercase fw-bold"
+                                            style="margin-bottom:12px;">
+                                            <i class="fas fa-paperclip me-1 text-primary"></i> Lampiran (<%=
+                                                attachments.length %> File)
+                                        </div>
+                                        <div class="row g-2">
+                                            <% attachments.forEach((att, idx)=> { %>
+                                                <% if (att.attachment_path) { %>
+                                                    <div class="col-4 col-md-3">
+                                                        <a href="/attachment/view/<%= att.attachment_path.split('/').pop() %>"
+                                                            class="d-block border rounded shadow-sm overflow-hidden bg-light"
+                                                            style="height: 100px;">
+                                                            <% if (att.attachment_path.toLowerCase().endsWith('.pdf')) {
+                                                                %>
+                                                                <div
+                                                                    class="d-flex flex-column align-items-center justify-content-center h-100 text-danger bg-white">
+                                                                    <i class="fas fa-file-pdf fa-2x mb-1"></i>
+                                                                    <span
+                                                                        style="font-size: 0.65rem; font-weight: 700;">PDF</span>
+                                                                </div>
+                                                                <% } else { %>
+                                                                    <img src="<%= att.attachment_path %>"
+                                                                        class="w-100 h-100" style="object-fit: cover;">
+                                                                    <% } %>
+                                                        </a>
+                                                    </div>
+                                                    <% } %>
+                                                        <% }) %>
+                                        </div>
+                                    </div>
+                                    <% } else if (report.attachment_path) { %>
+                                        <div class="mb-4">
+                                            <label
+                                                class="form-label text-muted small text-uppercase fw-bold">Lampiran</label>
+                                            <div class="mt-2 text-center bg-light border rounded p-3">
+                                                <a href="/attachment/view/<%= report.attachment_path.split('/').pop() %>"
+                                                    class="d-inline-block">
+                                                    <% if (report.attachment_path.toLowerCase().endsWith('.pdf')) { %>
+                                                        <div class="text-danger">
+                                                            <i class="fas fa-file-pdf fa-3x mb-2"></i>
+                                                            <div class="fw-bold small">Klik untuk Lihat PDF</div>
+                                                        </div>
+                                                        <% } else { %>
+                                                            <img src="<%= report.attachment_path %>"
+                                                                class="img-fluid rounded border shadow-sm"
+                                                                style="max-height:200px;">
+                                                            <% } %>
+                                                </a>
+                                            </div>
+                                        </div>
+                                        <% } %>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel Kanan: Status & Note -->
+            <div class="col-lg-4">
+                <div class="card shadow-sm border-0 mb-3" style="position: sticky; top: 20px;">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0 fw-bold"><i class="fas fa-info-circle text-primary me-2"></i>Status & Review
+                        </h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="mb-4">
+                            <label class="form-label text-muted small text-uppercase fw-bold d-block mb-3">Status Saat
+                                Ini</label>
+                            <div
+                                class="p-3 border rounded text-center <%= report.status === 'approved' || report.status === 'approve' ? 'bg-success bg-opacity-10' : (report.status === 'rejected' || report.status === 'reject' ? 'bg-danger bg-opacity-10' : 'bg-warning bg-opacity-10') %>">
+                                <span
+                                    class="badge-status <%= report.status === 'approved' || report.status === 'approve' ? 'badge-approved' : (report.status === 'rejected' || report.status === 'reject' ? 'badge-draft' : 'badge-submitted') %>"
+                                    style="font-size: 1rem; padding: 8px 16px;">
+                                    <%= report.status==='submitted' || report.status==='proses' ? 'Proses Review' :
+                                        (report.status==='approved' || report.status==='approve' ? 'Disetujui' :
+                                        (report.status==='rejected' || report.status==='reject' ? 'Ditolak' :
+                                        report.status)) %>
+                                </span>
+                            </div>
+                        </div>
+
+                        <% if (report.is_asked_director) { %>
+                            <div class="mb-4">
+                                <label class="form-label text-muted small text-uppercase fw-bold">Respon / Solusi
+                                    Director</label>
+                                <div class="p-3 border-start border-4 border-danger rounded bg-white shadow-sm">
+                                    <% if (report.director_solution) { %>
+                                        <div class="fw-bold text-danger mb-2">
+                                            <i class="fas fa-magic me-2"></i>Solusi dari Director:
+                                        </div>
+                                        <div style="line-height: 1.6; white-space: pre-wrap;">
+                                            <%= report.director_solution %>
+                                        </div>
+                                        <% } else { %>
+                                            <div class="text-muted italic">
+                                                <i class="fas fa-hourglass-half me-2"></i>Menunggu solusi dari
+                                                Director...
+                                            </div>
+                                            <% } %>
+                                </div>
+                            </div>
+                            <% } %>
+
+                                <% if (report.manager_note) { %>
+                                    <div class="mb-4">
+                                        <label class="form-label text-muted small text-uppercase fw-bold">Catatan
+                                            Manager</label>
+                                        <div class="alert alert-warning border-warning p-3 mb-0"
+                                            style="background: #fffbeb; word-break: break-word; overflow-wrap: anywhere;">
+                                            <i class="fas fa-comment-alt text-warning me-2"></i>
+                                            <%= report.manager_note %>
+                                        </div>
+                                    </div>
+                                    <% } %>
+
+                                        <div class="d-grid gap-2">
+                                            <% if (report.status !=='approved' && report.status !=='approve' ) { %>
+                                                <button onclick="selfApprove('<%= report.id %>')"
+                                                    class="btn btn-success py-2">
+                                                    <i class="fas fa-check-double me-1"></i> Setujui Laporan Saya
+                                                    (Finish)
+                                                </button>
+                                                <a href="/report/edit/<%= report.id %>" class="btn btn-primary py-2">
+                                                    <i class="fas fa-edit me-1"></i> Edit Laporan
+                                                </a>
+                                                <% } %>
+                                                    <a href="/dashboard" class="btn btn-outline-secondary py-2">
+                                                        <i class="fas fa-chevron-left me-1"></i> Kembali ke Dashboard
+                                                    </a>
+                                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            async function selfApprove(id) {
+                const confirm = await Swal.fire({
+                    title: 'Selesaikan Laporan?',
+                    text: "Dengan menyetujui sendiri, laporan Anda akan dianggap selesai (Approved).",
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Selesai!',
+                    cancelButtonText: 'Batal'
+                });
+
+                if (confirm.isConfirmed) {
+                    try {
+                        const res = await fetch('/report/approve/' + id, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' }
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            Swal.fire({ icon: 'success', title: 'Berhasil', text: data.message, timer: 1500, showConfirmButton: false })
+                                .then(() => window.location.reload());
+                        } else {
+                            throw new Error(data.message);
+                        }
+                    } catch (err) {
+                        Swal.fire('Gagal', err.message, 'error');
+                    }
+                }
+            }
+        </script>
+
+        <%- include('../partials/layout_foot') %>

@@ -1,0 +1,309 @@
+<% const title='Urgent — Permintaan Solusi' ; const pageTitle='Urgent: Permintaan Solusi dari Karyawan' ; const
+    activePage='urgent' ; %>
+    <%- include('../partials/layout_head') %>
+
+        <style>
+            .urgent-banner {
+                background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
+                border-radius: 12px;
+                padding: 20px 24px;
+                color: white;
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                margin-bottom: 24px;
+                box-shadow: 0 4px 20px rgba(255, 68, 68, 0.35);
+            }
+
+            .urgent-banner .pulsing-dot {
+                width: 16px;
+                height: 16px;
+                background: white;
+                border-radius: 50%;
+                flex-shrink: 0;
+                animation: pulse-dot 1.4s infinite;
+            }
+
+            @keyframes pulse-dot {
+
+                0%,
+                100% {
+                    transform: scale(1);
+                    opacity: 1;
+                }
+
+                50% {
+                    transform: scale(1.4);
+                    opacity: 0.7;
+                }
+            }
+
+            .row-unsolved {
+                background-color: rgba(255, 68, 68, 0.06) !important;
+                border-left: 4px solid #ef4444;
+            }
+
+            .row-solved {
+                opacity: 0.75;
+            }
+
+            .badge-urgent {
+                background: linear-gradient(135deg, #ff4444, #cc0000);
+                color: white;
+                padding: 4px 10px;
+                border-radius: 20px;
+                font-size: 0.7rem;
+                font-weight: 700;
+                letter-spacing: 0.5px;
+            }
+
+            .badge-solved {
+                background: linear-gradient(135deg, #10b981, #059669);
+                color: white;
+                padding: 4px 10px;
+                border-radius: 20px;
+                font-size: 0.7rem;
+                font-weight: 700;
+            }
+
+            .solve-modal-header {
+                background: linear-gradient(135deg, #1e293b, #0f172a);
+                color: white;
+                border-radius: 12px 12px 0 0;
+            }
+
+            .solve-modal-header .btn-close {
+                filter: invert(1);
+            }
+
+            .solve-textarea {
+                min-height: 100px;
+                resize: vertical;
+            }
+        </style>
+
+        <div class="page-header d-flex align-items-center justify-content-between">
+            <div>
+                <h1>
+                    <% if (unsolvedCount> 0) { %>
+                        <i class="fas fa-exclamation-triangle me-2 text-danger"></i>
+                        <% } else { %>
+                            <i class="fas fa-check-circle me-2 text-success"></i>
+                            <% } %>
+                                Urgent
+                </h1>
+                <p>Permintaan solusi dari karyawan yang membutuhkan jawaban</p>
+            </div>
+            <a href="/sda/dashboard" class="btn btn-secondary btn-sm">
+                <i class="fas fa-arrow-left me-1"></i> Kembali
+            </a>
+        </div>
+
+        <% if (msg==='solved' ) { %>
+            <div class="alert alert-success" data-auto-dismiss>
+                <i class="fas fa-check-circle me-2"></i> Solusi berhasil diberikan dan karyawan telah dinotifikasi.
+            </div>
+            <% } %>
+
+                <!-- Urgent Banner -->
+                <% if (unsolvedCount> 0) { %>
+                    <div class="urgent-banner">
+                        <div class="pulsing-dot"></div>
+                        <div>
+                            <div style="font-size: 1.25rem; font-weight: 700;">
+                                <%= unsolvedCount %> Permintaan Belum Ditangani
+                            </div>
+                            <div style="opacity: 0.85; font-size: 0.9rem;">Karyawan menunggu solusi dari Anda. Harap
+                                segera tanggapi.</div>
+                        </div>
+                    </div>
+                    <% } else { %>
+                        <div class="alert alert-success d-flex align-items-center gap-3 mb-4">
+                            <i class="fas fa-check-circle" style="font-size:1.5rem;"></i>
+                            <div><strong>Semua sudah ditangani!</strong> Tidak ada permintaan solusi yang tertunda.
+                            </div>
+                        </div>
+                        <% } %>
+
+                            <div class="card">
+                                <div class="card-header-custom d-flex align-items-center justify-content-between">
+                                    <h5><i class="fas fa-fire me-2 text-danger"></i>Daftar Permintaan Solusi (<%=
+                                            urgentReports.length %>)</h5>
+                                    <span class="badge bg-danger">
+                                        <%= unsolvedCount %> Belum Selesai
+                                    </span>
+                                </div>
+                                <div class="card-body-custom p-0">
+                                    <div class="table-wrapper">
+                                        <table class="tbl">
+                                            <thead>
+                                                <tr>
+                                                    <th style="width:40px;">#</th>
+                                                    <th>Karyawan</th>
+                                                    <th>Perusahaan / Divisi</th>
+                                                    <th>Tanggal Laporan</th>
+                                                    <th>Masalah / Tugas</th>
+                                                    <th>Solusi Saat Ini</th>
+                                                    <th>Status</th>
+                                                    <th>Aksi</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <% if (urgentReports.length===0) { %>
+                                                    <tr>
+                                                        <td colspan="8"
+                                                            style="text-align:center;padding:50px;color:var(--text-muted);">
+                                                            <i class="fas fa-check-double"
+                                                                style="font-size:2rem;opacity:0.3;display:block;margin-bottom:10px;"></i>
+                                                            Belum ada permintaan solusi.
+                                                        </td>
+                                                    </tr>
+                                                    <% } %>
+                                                        <% urgentReports.forEach((r, i)=> { %>
+                                                            <tr
+                                                                class="<%= r.is_solved ? 'row-solved' : 'row-unsolved' %>">
+                                                                <td class="text-muted small fw-bold">#<%= i + 1 %>
+                                                                </td>
+                                                                <td>
+                                                                    <strong>
+                                                                        <%= r.full_name %>
+                                                                    </strong><br>
+                                                                    <small class="text-muted">
+                                                                        <%= r.position || '-' %>
+                                                                    </small>
+                                                                </td>
+                                                                <td>
+                                                                    <div class="small fw-bold">
+                                                                        <%= r.company_name || '-' %>
+                                                                    </div>
+                                                                    <span class="badge bg-light text-dark border"
+                                                                        style="font-size:0.7rem;">
+                                                                        <%= r.department_name || '-' %>
+                                                                    </span>
+                                                                </td>
+                                                                <td class="text-nowrap">
+                                                                    <%= new
+                                                                        Date(r.report_date).toLocaleDateString('id-ID',
+                                                                        {day:'2-digit',month:'short',year:'numeric'}) %>
+                                                                </td>
+                                                                <td>
+                                                                    <div class="small fw-bold text-danger"
+                                                                        style="max-width:180px;">
+                                                                        <i class="fas fa-exclamation-circle me-1"></i>
+                                                                        <%= r.issue || '-' %>
+                                                                    </div>
+                                                                    <div class="small text-muted"
+                                                                        style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
+                                                                        title="<%= r.task_description %>">
+                                                                        <%= r.task_description %>
+                                                                    </div>
+                                                                </td>
+                                                                <td>
+                                                                    <% if (r.director_solution) { %>
+                                                                        <div class="small text-success"
+                                                                            style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
+                                                                            title="<%= r.director_solution %>">
+                                                                            <i class="fas fa-check-circle me-1"></i>
+                                                                            <%= r.director_solution %>
+                                                                        </div>
+                                                                        <% } else { %>
+                                                                            <span class="text-muted small"><em>Belum ada
+                                                                                    solusi</em></span>
+                                                                            <% } %>
+                                                                                <% if (r.manager_note) { %>
+                                                                                    <div class="small text-warning mt-1"
+                                                                                        style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
+                                                                                        title="<%= r.manager_note %>">
+                                                                                        <i
+                                                                                            class="fas fa-comment-dots me-1"></i>
+                                                                                        <%= r.manager_note %>
+                                                                                    </div>
+                                                                                    <% } %>
+                                                                </td>
+                                                                <td>
+                                                                    <% if (r.is_solved) { %>
+                                                                        <span class="badge-solved"><i
+                                                                                class="fas fa-check me-1"></i>Selesai</span>
+                                                                        <% } else { %>
+                                                                            <span class="badge-urgent"><i
+                                                                                    class="fas fa-clock me-1"></i>Menunggu</span>
+                                                                            <% } %>
+                                                                </td>
+                                                                <td>
+                                                                    <div class="d-flex gap-1">
+                                                                        <a href="/sda/report/<%= r.id %>"
+                                                                            class="btn btn-xs btn-outline-primary"
+                                                                            title="Lihat Laporan">
+                                                                            <i class="fas fa-eye"></i>
+                                                                        </a>
+                                                                        <button class="btn btn-xs btn-danger"
+                                                                            title="Berikan Solusi"
+                                                                            onclick='openSolveModal(<%= r.id %>, <%- JSON.stringify(r.director_solution || "") %>, <%- JSON.stringify(r.manager_note || "") %>)'>
+                                                                            <i class="fas fa-pen-nib"></i> Jawab
+                                                                        </button>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                            <% }) %>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Solve Modal -->
+                            <div class="modal fade" id="solveModal" tabindex="-1">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <div class="solve-modal-header modal-header">
+                                            <h5 class="modal-title"><i class="fas fa-pen-nib me-2"></i>Berikan Solusi
+                                            </h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <form id="solveForm" method="POST" action="">
+                                            <div class="modal-body">
+                                                <div class="alert alert-warning py-2" style="font-size:0.85rem;">
+                                                    <i class="fas fa-info-circle me-1"></i>
+                                                    Solusi dan catatan yang Anda tulis akan langsung masuk ke laporan
+                                                    karyawan dan mereka akan mendapat notifikasi.
+                                                </div>
+                                                <div class="form-group mb-3">
+                                                    <label class="form-label fw-bold">Solusi <span
+                                                            class="text-danger">*</span></label>
+                                                    <textarea class="form-control solve-textarea"
+                                                        name="director_solution" id="directorSolutionInput"
+                                                        placeholder="Tuliskan solusi untuk masalah ini..."
+                                                        required></textarea>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="form-label fw-bold">Catatan Tambahan
+                                                        (Opsional)</label>
+                                                    <textarea class="form-control" name="manager_note"
+                                                        id="managerNoteInput" rows="3"
+                                                        placeholder="Catatan atau instruksi tambahan..."></textarea>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary"
+                                                    data-bs-dismiss="modal">Batal</button>
+                                                <button type="submit" class="btn btn-danger">
+                                                    <i class="fas fa-paper-plane me-1"></i> Kirim Solusi
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <script>
+                                const solveModal = new bootstrap.Modal(document.getElementById('solveModal'));
+
+                                function openSolveModal(reportId, currentSolution, currentNote) {
+                                    document.getElementById('solveForm').action = '/sda/report/give-solution/' + reportId;
+                                    document.getElementById('directorSolutionInput').value = currentSolution;
+                                    document.getElementById('managerNoteInput').value = currentNote;
+                                    solveModal.show();
+                                }
+                            </script>
+
+                            <%- include('../partials/layout_foot') %>

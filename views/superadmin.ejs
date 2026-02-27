@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Admin Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+
+        body {
+            background: #f0f2f5;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: #2d3436;
+            min-height: 100vh;
+            caret-color: transparent;
+        }
+
+        .main-container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+
+        .glass-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            border: 1px solid #eee;
+            overflow: hidden;
+            margin-bottom: 25px;
+        }
+
+        .header-section {
+            background: linear-gradient(135deg, #2d3436 0%, #000000 100%);
+            padding: 30px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table thead th {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #eee;
+            color: #636e72;
+            padding: 15px;
+        }
+
+        .table tbody td {
+            vertical-align: middle;
+            padding: 15px;
+            border-bottom: 1px solid #f1f1f1;
+            font-size: 0.95rem;
+        }
+
+        .btn-add {
+            background: #00b894;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 12px;
+            font-weight: 700;
+            color: white;
+            transition: 0.3s;
+        }
+
+        .btn-add:hover {
+            background: #00a884;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 184, 148, 0.3);
+        }
+
+        .btn-action {
+            width: 35px;
+            height: 35px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            transition: 0.2s;
+            margin: 0 2px;
+            text-decoration: none;
+        }
+
+        .btn-delete {
+            background: #ffecec;
+            color: #d63031;
+        }
+
+        .btn-delete:hover {
+            background: #d63031;
+            color: white;
+        }
+
+        .btn-logout {
+            background: #dfe6e9;
+            color: #2d3436;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-logout:hover {
+            background: #2d3436;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .btn-edit {
+            background: #e8f0fe;
+            color: #1a73e8;
+        }
+
+        .btn-edit:hover {
+            background: #1a73e8;
+            color: white;
+        }
+
+        /* Modal Custom */
+        .modal-content {
+            border-radius: 20px;
+            border: none;
+        }
+
+        .modal-header {
+            border-bottom: 1px solid #eee;
+            padding: 20px 30px;
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .form-control {
+            border-radius: 10px;
+            padding: 12px;
+            border: 1px solid #dfe6e9;
+        }
+
+        .form-control:focus {
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+            border-color: #2d3436;
+        }
+
+        .badge-role {
+            font-size: 0.75rem;
+            padding: 5px 10px;
+            border-radius: 6px;
+            background: #dfe6e9;
+            color: #636e72;
+            font-weight: 700;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="main-container">
+        <!-- Header -->
+        <div class="glass-card header-section">
+            <div>
+                <a href="/dashboard" class="text-decoration-none text-dark d-inline-block mb-2">
+                    <small class="fw-bold"><i class="fas fa-arrow-left me-1"></i> Ke Dashboard</small>
+                </a>
+                <h2 class="fw-bold m-0"><i class="fas fa-user-shield me-2"></i>Super Admin Console</h2>
+                <p class="m-0 opacity-75 mt-1">Manage Users & Access Rights</p>
+            </div>
+            <button class="btn-add" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                <i class="fas fa-plus me-2"></i>New User
+            </button>
+            <a href="/supadmin/logout" class="btn-logout ms-2">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+
+        <!-- User Table -->
+        <div class="glass-card">
+            <div class="table-responsive">
+                <table class="table mb-0">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Full Name</th>
+                            <th>Email</th>
+                            <th>Company</th>
+                            <th>Position</th>
+                            <th>Role</th>
+                            <th class="text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (users && users.length> 0) { %>
+                            <% users.forEach((u, index)=> { %>
+                                <tr>
+                                    <td>
+                                        <%= index + 1 %>
+                                    </td>
+                                    <td class="fw-bold">
+                                        <%= u.full_name %>
+                                    </td>
+                                    <td>
+                                        <%= u.email %>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark border">
+                                            <%= u.company %>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <%= u.position %>
+                                    </td>
+                                    <td><span class="badge-role">
+                                            <%= u.role_name || 'No Role' %>
+                                        </span></td>
+                                    <td class="text-center">
+                                        <a href="javascript:void(0)"
+                                            onclick="openEditModal('<%= u.id %>', '<%= u.full_name %>', '<%= u.email %>', '<%= u.company %>', '<%= u.position %>', '<%= u.role_id %>')"
+                                            class="btn-action btn-edit" title="Edit User">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="javascript:void(0)"
+                                            onclick="confirmDelete('<%= u.id %>', '<%= u.full_name %>')"
+                                            class="btn-action btn-delete" title="Delete User">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                <% }) %>
+                                    <% } else { %>
+                                        <tr>
+                                            <td colspan="7" class="text-center py-5 text-muted">No users found.</td>
+                                        </tr>
+                                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Add User -->
+    <div class="modal fade" id="addUserModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Add New User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="/supadmin/add-user" method="POST">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">FULL NAME</label>
+                            <input type="text" class="form-control" name="full_name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">EMAIL ADDRESS</label>
+                            <input type="email" class="form-control" name="email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">PASSWORD</label>
+                            <input type="text" class="form-control" name="password" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold small text-muted">COMPANY</label>
+                                <select class="form-control" name="company" required>
+                                    <option value="" disabled selected>Select company...</option>
+                                    <option value="WONG HANG BERSAUDARA">WONG HANG BERSAUDARA</option>
+                                    <option value="AKSA DIGITEX">AKSA DIGITEX</option>
+                                    <option value="AKARSA HEXA BERSAUDARA">AKARSA HEXA BERSAUDARA</option>
+                                    <option value="BITREN">BITREN</option>
+                                    <option value="ALAS KAKI TANGGUH">ALAS KAKI TANGGUH</option>
+                                    <option value="ALFA DINAMIS">ALFA DINAMIS</option>
+                                    <option value="DELTA SINERGI SOLUSI">DELTA SINERGI SOLUSI</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold small text-muted">POSITION</label>
+                                <input type="text" class="form-control" name="position" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">ROLE</label>
+                            <select class="form-control" name="role_id" required>
+                                <option value="" disabled selected>Select a role...</option>
+                                <% roles.forEach(role=> { %>
+                                    <option value="<%= role.id %>">
+                                        <%= role.role_name %>
+                                    </option>
+                                    <% }) %>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn-add w-100 mt-2">Create Account</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Edit User -->
+    <div class="modal fade" id="editUserModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Edit User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="/supadmin/update-user" method="POST" id="editUserForm">
+                        <input type="hidden" name="id" id="edit_id">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">FULL NAME</label>
+                            <input type="text" class="form-control" name="full_name" id="edit_full_name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">EMAIL ADDRESS</label>
+                            <input type="email" class="form-control" name="email" id="edit_email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">NEW PASSWORD (LEAVE BLANK TO KEEP
+                                CURRENT)</label>
+                            <input type="text" class="form-control" name="password" placeholder="Optional">
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold small text-muted">COMPANY</label>
+                                <select class="form-control" name="company" id="edit_company" required>
+                                    <option value="WONG HANG BERSAUDARA">WONG HANG BERSAUDARA</option>
+                                    <option value="AKSA DIGITEX">AKSA DIGITEX</option>
+                                    <option value="AKARSA HEXA BERSAUDARA">AKARSA HEXA BERSAUDARA</option>
+                                    <option value="BITREN">BITREN</option>
+                                    <option value="ALAS KAKI TANGGUH">ALAS KAKI TANGGUH</option>
+                                    <option value="ALFA DINAMIS">ALFA DINAMIS</option>
+                                    <option value="DELTA SINERGI SOLUSI">DELTA SINERGI SOLUSI</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold small text-muted">POSITION</label>
+                                <input type="text" class="form-control" name="position" id="edit_position" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">ROLE</label>
+                            <select class="form-control" name="role_id" id="edit_role_id" required>
+                                <% roles.forEach(role=> { %>
+                                    <option value="<%= role.id %>">
+                                        <%= role.role_name %>
+                                    </option>
+                                    <% }) %>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn-add w-100 mt-2" style="background: #1a73e8;">Update User
+                            Data</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function openEditModal(id, name, email, company, position, role_id) {
+            document.getElementById('edit_id').value = id;
+            document.getElementById('edit_full_name').value = name;
+            document.getElementById('edit_email').value = email;
+            document.getElementById('edit_company').value = company;
+            document.getElementById('edit_position').value = position;
+            document.getElementById('edit_role_id').value = role_id;
+
+            const modal = new bootstrap.Modal(document.getElementById('editUserModal'));
+            modal.show();
+        }
+
+        function confirmDelete(id, name) {
+            Swal.fire({
+                title: 'Delete User?',
+                text: `Are you sure you want to delete ${name}?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d63031',
+                confirmButtonText: 'Yes, Delete',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = `/supadmin/delete-user/${id}`;
+                }
+            });
+        }
+
+        // Show alerts from server
+        const urlParams = new URLSearchParams(window.location.search);
+        const msg = urlParams.get('msg');
+        if (msg) {
+            let title = 'Success';
+            let text = '';
+            if (msg === 'created') text = 'New user has been created successfully.';
+            if (msg === 'updated') text = 'User data has been updated successfully.';
+            if (msg === 'deleted') { title = 'Deleted!'; text = 'User has been removed.'; }
+
+            Swal.fire(title, text, 'success');
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
+        if (urlParams.get('error')) {
+            Swal.fire('Error', urlParams.get('error'), 'error');
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    </script>
+</body>
+
+</html>

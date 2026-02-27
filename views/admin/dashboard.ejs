@@ -1,0 +1,315 @@
+<% const title='Dashboard Divisi' ; const pageTitle='Dashboard Divisi \u2014 ' + user.department_name; const
+    activePage='dashboard' ; // Gunakan todayStr dari server (sudah timezone WIB) const todayDate=todayStr; //
+    Bandingkan report_date sebagai string YYYY-MM-DD const todayReports=reports.filter(r=> {
+    const rDate = (r.report_date instanceof Date)
+    ? r.report_date.toISOString().split('T')[0]
+    : String(r.report_date).split('T')[0];
+    return rDate === todayDate;
+    }).length;
+
+    const pendingReview = reports.filter(r => r.status === 'submitted' || r.status === 'proses').length;
+    const totalLaporan = reports.length;
+    %>
+    <%- include('../partials/layout_head') %>
+
+        <div class="page-header">
+            <h1><i class="fas fa-chalkboard-teacher me-2"></i>Dashboard Divisi</h1>
+            <p>
+                <%= user.department_name %> | <%= user.company_name %>
+            </p>
+        </div>
+
+        <!-- Stats Ringkas -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md">
+                <div class="stat-card">
+                    <div class="stat-icon purple"><i class="fas fa-users"></i></div>
+                    <div>
+                        <div class="stat-number">
+                            <%= totalStaff %>
+                        </div>
+                        <div class="stat-label">Total Staff</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md">
+                <div class="stat-card">
+                    <div class="stat-icon green"><i class="fas fa-check"></i></div>
+                    <div>
+                        <div class="stat-number">
+                            <%= todayReports %>
+                        </div>
+                        <div class="stat-label">Laporan Masuk (Hari Ini)</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md">
+                <div class="stat-card">
+                    <div class="stat-icon orange"><i class="fas fa-exclamation-circle"></i></div>
+                    <div>
+                        <div class="stat-number <%= notReported.length > 0 ? 'text-danger' : '' %>">
+                            <%= notReported.length %>
+                        </div>
+                        <div class="stat-label">Belum Lapor (Hari Ini)</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md">
+                <div class="stat-card">
+                    <div class="stat-icon blue"><i class="fas fa-clock"></i></div>
+                    <div>
+                        <div class="stat-number">
+                            <%= pendingReview %>
+                        </div>
+                        <div class="stat-label">Perlu Review</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background:#e8f5e9;color:#2e7d32;"><i class="fas fa-file-alt"></i>
+                    </div>
+                    <div>
+                        <div class="stat-number">
+                            <%= totalLaporan %>
+                        </div>
+                        <div class="stat-label">Total Laporan</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notifikasi Belum Lapor -->
+        <% if (notReported.length> 0) { %>
+            <div class="alert alert-warning d-flex align-items-center mb-4" role="alert">
+                <i class="fas fa-exclamation-triangle me-3" style="font-size:1.5rem;"></i>
+                <div>
+                    <strong>Perhatian:</strong>
+                    <%= notReported.length %> anggota tim belum mengirim laporan hari ini:
+                        <div class="mt-1" style="font-size:0.9rem;">
+                            <%= notReported.map(u=> u.full_name).join(', ') %>
+                        </div>
+                </div>
+            </div>
+            <% } %>
+
+                <!-- Filter -->
+                <div class="card mb-4">
+                    <div class="card-body-custom">
+                        <form method="GET" action="/admin/dashboard" class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label">Dari Tanggal</label>
+                                <input type="date" class="form-control" name="date_from"
+                                    value="<%= filters.date_from || '' %>">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Sampai Tanggal</label>
+                                <input type="date" class="form-control" name="date_to"
+                                    value="<%= filters.date_to || '' %>">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Status</label>
+                                <select class="form-select" name="status">
+                                    <option value="">Semua Status</option>
+                                    <option value="draft" <%=filters.status==='draft' ?'selected':'' %>>Draft (Belum
+                                        Submit)</option>
+                                    <option value="submitted" <%=filters.status==='submitted' ?'selected':'' %>>Menunggu
+                                        Review</option>
+                                    <option value="approved" <%=filters.status==='approved' ?'selected':'' %>>Disetujui
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Cari Nama</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="search" placeholder="Nama staff..."
+                                        value="<%= filters.search || '' %>">
+                                    <button class="btn btn-primary" type="submit"><i class="fas fa-search"></i></button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="mb-3 d-flex gap-2">
+                    <a href="/export/excel" class="btn btn-success btn-sm"><i class="fas fa-file-excel"></i> Export
+                        Excel</a>
+                    <a href="/export/pdf" class="btn btn-danger btn-sm"><i class="fas fa-file-pdf"></i> Export PDF</a>
+                </div>
+
+                <!-- Tabel Laporan -->
+                <div class="card">
+                    <div class="card-header-custom">
+                        </strong>
+                        <small class="d-block text-muted">
+                            <%= r.position %>
+                        </small>
+                        </td>
+                        <td>
+                            <div style="max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
+                                title="<%= r.task_description %>">
+                                <%= r.task_description || '—' %>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
+                                title="<%= r.issue %>">
+                                <%= r.issue || '—' %>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
+                                title="<%= r.solution %>">
+                                <%= r.solution || '—' %>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
+                                title="<%= r.result %>">
+                                <%= r.result || '—' %>
+                            </div>
+                        </td>
+                        <td style="text-align:center;">
+                            <% if (r.attachment_path) { %>
+                                <a href="/attachment/view/<%= r.attachment_path.split('/').pop() %>"
+                                    class="text-primary" title="Lihat Lampiran">
+                                    <i class="fas fa-paperclip"></i>
+                                </a>
+                                <% } else { %>
+                                    <span class="text-muted small">—</span>
+                                    <% } %>
+                        </td>
+                        <td>
+                            <span class="badge-status badge-<%= r.status %>">
+                                <% if (r.status==='approved' ) { %> Approve <% } else if (r.status==='rejected' ) { %>
+                                        Reject <% } else if (r.status==='submitted' ) { %> Proses <% } else { %>
+                                                <%= r.status %>
+                                                    <% } %>
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1 flex-wrap">
+                                <a href="/admin/report/<%= r.id %>" class="btn btn-xs btn-outline-primary"
+                                    title="Lihat Detail">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <% if (r.status==='submitted' || r.status==='proses' ) { %>
+                                    <button onclick="quickAction('<%= r.id %>', 'approved')"
+                                        class="btn btn-xs btn-success" title="Setujui Cepat">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    <button onclick="quickAction('<%= r.id %>', 'rejected')"
+                                        class="btn btn-xs btn-danger" title="Tolak Cepat">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                    <% } %>
+                                        <button onclick="deleteReport('<%= r.id %>', '<%= r.full_name %>')"
+                                            class="btn btn-xs btn-outline-danger" title="Hapus Laporan">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                        <button
+                                            onclick="askDirector('<%= r.id %>', '<%= (r.task_description || '').substring(0, 40).replace(/'/g, '').replace(/\r?\n/g, ' ') %>', this)"
+                                            class="btn btn-xs <%= r.is_asked_director ? (r.director_solution ? 'btn-success' : 'btn-secondary') : 'btn-outline-danger' %>"
+                                            title="<%= r.is_asked_director ? (r.director_solution ? 'Sudah Terjawab' : 'Sudah Ditanya') : 'Tanya Solusi kepada Director' %>"
+                                            <%=r.is_asked_director ? 'disabled' : '' %>>
+                                            <i
+                                                class="fas <%= r.is_asked_director ? (r.director_solution ? 'fa-check-double' : 'fa-hourglass-half') : 'fa-question-circle' %> me-1"></i>
+                                            <%= r.is_asked_director ? (r.director_solution ? 'Terjawab'
+                                                : 'Telah Ditanya' ) : 'Tanya Solusi' %>
+                                        </button>
+                            </div>
+                        </td>
+                        </tr>
+                        <% }) %>
+                            </tbody>
+                            </table>
+                    </div>
+                </div>
+                </div>
+
+                <script>
+                    async function quickAction(id, status) {
+                        const actionText = status === 'approved' ? 'Setujui' : 'Tolak';
+                        const confirm = await Swal.fire({
+                            title: actionText + ' Laporan?',
+                            text: "Anda akan mengubah status laporan ini secara cepat.",
+                            icon: 'question',
+                            showCancelButton: true,
+                            confirmButtonText: 'Ya, ' + actionText,
+                            cancelButtonText: 'Batal'
+                        });
+
+                        if (confirm.isConfirmed) {
+                            try {
+                                const res = await fetch('/admin/review/' + id, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ new_status: status, manager_note: 'Quick review via dashboard' })
+                                });
+                                const data = await res.json();
+                                if (data.success) {
+                                    Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Status diperbarui', timer: 1000, showConfirmButton: false })
+                                        .then(() => window.location.reload());
+                                } else {
+                                    throw new Error(data.message);
+                                }
+                            } catch (err) {
+                                Swal.fire('Gagal', err.message, 'error');
+                            }
+                        }
+                    }
+
+                    async function deleteReport(id, nama) {
+                        const confirm = await Swal.fire({
+                            title: 'Hapus Laporan?',
+                            html: `Anda akan menghapus laporan milik <strong>${nama}</strong>.<br>Data yang dihapus <strong>tidak dapat dikembalikan</strong>.`,
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#d63031',
+                            confirmButtonText: 'Ya, Hapus!',
+                            cancelButtonText: 'Batal'
+                        });
+
+                        if (confirm.isConfirmed) {
+                            try {
+                                const res = await fetch('/admin/report/delete/' + id, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' }
+                                });
+                                const data = await res.json();
+                                if (data.success) {
+                                    Swal.fire({ icon: 'success', title: 'Dihapus!', text: 'Laporan berhasil dihapus.', timer: 1200, showConfirmButton: false })
+                                        .then(() => window.location.reload());
+                                } else {
+                                    throw new Error(data.message);
+                                }
+                            } catch (err) {
+                                Swal.fire('Gagal', err.message, 'error');
+                            }
+                        }
+                    }
+
+                    async function askDirector(reportId, taskDesc, btn) {
+                        const result = await Swal.fire({
+                            title: '🔴 Tanya Solusi ke Director?',
+                            html: `<p>Permintaan solusi untuk laporan ini akan dikirim ke <strong>Super Duper Admin</strong>.</p>`,
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonText: 'Ya, Kirim!',
+                            confirmButtonColor: '#ef4444',
+                            cancelButtonText: 'Batal'
+                        });
+                        if (result.isConfirmed) {
+                            try {
+                                const res = await fetch('/report/ask-director/' + reportId, { method: 'POST' });
+                                const data = await res.json();
+                                if (data.success) {
+                                    Swal.fire({ icon: 'success', title: 'Terkirim!', text: 'Permintaan solusi berhasil dikirim.', timer: 1500, showConfirmButton: false })
+                                        .then(() => window.location.reload());
+                                } else { throw new Error(data.message); }
+                            } catch (err) { Swal.fire('Gagal', err.message, 'error'); }
+                        }
+                    }
+                </script>
+
+                <%- include('../partials/layout_foot') %>

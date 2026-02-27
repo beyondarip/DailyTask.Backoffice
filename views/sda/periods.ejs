@@ -1,0 +1,190 @@
+<% const title='Master Data — Periode' ; const pageTitle='Periode Laporan' ; const activePage='periods' ; %>
+    <%- include('../partials/layout_head') %>
+
+        <div class="page-header d-flex align-items-center justify-content-between">
+            <div>
+                <h1><i class="fas fa-calendar-alt me-2"></i>Periode Laporan</h1>
+                <p>Kelola periode aktif untuk submit laporan</p>
+            </div>
+            <button class="btn btn-primary" onclick="openModal()">
+                <i class="fas fa-plus"></i> Tambah Periode
+            </button>
+        </div>
+
+        <% if (typeof msg !=='undefined' && msg) { %>
+            <div class="alert alert-<%= ['added','updated','deleted','success'].includes(msg) ? 'success' : 'danger' %>"
+                data-auto-dismiss>
+                <i
+                    class="fas fa-<%= ['added','updated','deleted','success'].includes(msg) ? 'check-circle' : 'exclamation-circle' %>"></i>
+                <%= typeof msgText !=='undefined' ? msgText : (['added','updated','deleted','success'].includes(msg)
+                    ? 'Berhasil!' : 'Terjadi kesalahan.' ) %>
+            </div>
+            <% } %>
+                <% if (typeof err !=='undefined' && err) { %>
+                    <div class="alert alert-danger" data-auto-dismiss>
+                        <i class="fas fa-exclamation-circle"></i>
+                        <%= err %>
+                    </div>
+                    <% } %>
+
+                        <div class="card">
+                            <div class="card-body-custom p-0">
+                                <div class="table-wrapper">
+                                    <table class="tbl">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Nama Periode</th>
+                                                <th>PT</th>
+                                                <th>Mulai</th>
+                                                <th>Selesai</th>
+                                                <th>Deadline</th>
+                                                <th>Status</th>
+                                                <th>Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% if (periods.length===0) { %>
+                                                <tr>
+                                                    <td colspan="8"
+                                                        style="text-align:center;padding:40px;color:var(--text-muted);">
+                                                        Belum
+                                                        ada periode</td>
+                                                </tr>
+                                                <% } %>
+                                                    <% periods.forEach((p, index)=> { %>
+                                                        <tr>
+                                                            <td style="color:var(--text-muted);font-size:0.8rem;">#<%=
+                                                                    index + 1 %>
+                                                            </td>
+                                                            <td><strong>
+                                                                    <%= p.period_name %>
+                                                                </strong></td>
+                                                            <td style="font-size:0.82rem; color:var(--text-muted);">
+                                                                <%= p.company_name || 'Global Core' %>
+                                                            </td>
+                                                            <td>
+                                                                <%= new Date(p.start_date).toLocaleDateString('id-ID')
+                                                                    %>
+                                                            </td>
+                                                            <td>
+                                                                <%= new Date(p.end_date).toLocaleDateString('id-ID') %>
+                                                            </td>
+                                                            <td style="<%= p.deadline ? 'color:var(--warning)' : '' %>">
+                                                                <%= p.deadline ? new
+                                                                    Date(p.deadline).toLocaleDateString('id-ID') : '—'
+                                                                    %>
+                                                            </td>
+                                                            <td>
+                                                                <span
+                                                                    class="badge-status <%= p.is_active ? 'badge-approved' : 'badge-draft' %>">
+                                                                    <%= p.is_active ? 'Aktif' : 'Nonaktif' %>
+                                                                </span>
+                                                            </td>
+                                                            <td>
+                                                                <button class="btn btn-xs btn-primary"
+                                                                    onclick='openModal(<%- JSON.stringify(p) %>)'><i
+                                                                        class="fas fa-edit"></i></button>
+                                                                <button class="btn btn-xs btn-danger ms-1"
+                                                                    onclick="deletePeriod('<%= p.id %>', '<%= p.period_name %>')"><i
+                                                                        class="fas fa-trash"></i></button>
+                                                            </td>
+                                                        </tr>
+                                                        <% }) %>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="modal fade" id="periodModal" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="modalTitle">Tambah Periode</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <form id="periodForm" method="POST" action="/sda/periods/add">
+                                        <input type="hidden" name="id" id="periodId">
+                                        <div class="modal-body">
+                                            <div class="form-group">
+                                                <label class="form-label">Nama Periode *</label>
+                                                <input type="text" class="form-control" name="period_name"
+                                                    id="periodName" placeholder="mis. Januari 2026" required>
+                                            </div>
+                                            <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Tanggal Mulai *</label>
+                                                        <input type="date" class="form-control" name="start_date"
+                                                            id="pStart" required>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Tanggal Selesai *</label>
+                                                        <input type="date" class="form-control" name="end_date"
+                                                            id="pEnd" required>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">Deadline Submit</label>
+                                                <input type="date" class="form-control" name="deadline" id="pDeadline">
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">Status</label>
+                                                <select class="form-select" name="is_active" id="pStatus">
+                                                    <option value="true">Aktif</option>
+                                                    <option value="false">Nonaktif</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary"
+                                                data-bs-dismiss="modal">Batal</button>
+                                            <button type="submit" class="btn btn-primary">Simpan</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <script>
+                            const modal = new bootstrap.Modal(document.getElementById('periodModal'));
+
+                            function openModal(data) {
+                                if (data) {
+                                    document.getElementById('modalTitle').textContent = 'Edit Periode';
+                                    document.getElementById('periodId').value = data.id;
+                                    document.getElementById('periodName').value = data.period_name;
+                                    document.getElementById('pStart').value = data.start_date ? data.start_date.split('T')[0] : '';
+                                    document.getElementById('pEnd').value = data.end_date ? data.end_date.split('T')[0] : '';
+                                    document.getElementById('pDeadline').value = data.deadline ? data.deadline.split('T')[0] : '';
+                                    document.getElementById('pStatus').value = data.is_active ? 'true' : 'false';
+                                    document.getElementById('periodForm').action = '/sda/periods/edit/' + data.id;
+                                } else {
+                                    document.getElementById('modalTitle').textContent = 'Tambah Periode';
+                                    document.getElementById('periodForm').reset();
+                                    document.getElementById('periodForm').action = '/sda/periods/add';
+                                }
+                                modal.show();
+                            }
+
+                            async function deletePeriod(id, name) {
+                                const r = await Swal.fire({
+                                    icon: 'warning', title: 'Hapus Periode?', text: `"${name}" akan dihapus.`,
+                                    showCancelButton: true, confirmButtonColor: '#ef4444',
+                                    confirmButtonText: 'Ya, Hapus!', cancelButtonText: 'Batal'
+                                });
+                                if (r.isConfirmed) {
+                                    const form = document.createElement('form');
+                                    form.method = 'POST';
+                                    form.action = '/sda/periods/delete/' + id;
+                                    document.body.appendChild(form);
+                                    form.submit();
+                                }
+                            }
+                        </script>
+
+                        <%- include('../partials/layout_foot') %>

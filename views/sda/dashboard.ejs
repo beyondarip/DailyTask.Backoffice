@@ -1,0 +1,458 @@
+<% const title='Dashboard Global' ; const pageTitle='Dashboard Global — Super Duper Admin' ; const
+    activePage='dashboard' ; /* Normalisasi status untuk chart */ const getChartStatus=(s)=> {
+    if (s === 'approved' || s === 'approve') return 'approved';
+    if (s === 'submitted' || s === 'proses') return 'submitted';
+    return 'draft';
+    };
+
+    const totalReports = reports.length;
+    let totalApproved = 0, totalSubmitted = 0, totalDraft = 0;
+    reports.forEach(r => {
+    const s = getChartStatus(r.status);
+    if (s === 'approved') totalApproved++;
+    else if (s === 'submitted') totalSubmitted++;
+    else totalDraft++;
+    });
+
+    // Build byCompany map (needed by both table and chart)
+    const byCompany = {};
+    companyStats.forEach(s => {
+    const name = s.company_name || 'N/A';
+    const status = getChartStatus(s.status);
+    if (!byCompany[name]) byCompany[name] = { draft:0, submitted:0, approved:0 };
+    byCompany[name][status] += parseInt(s.total);
+    });
+    %>
+    <%- include('../partials/layout_head') %>
+
+        <div class="page-header">
+            <h1><i class="fas fa-globe me-2"></i>Dashboard Global</h1>
+            <p>Semua perusahaan — data real-time | <%= user.full_name %>
+            </p>
+        </div>
+
+        <% const totalNominal=reports.reduce((acc, r)=> acc + (parseFloat(r.total_nominal) || 0), 0); %>
+            <!-- Stats Global -->
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-md">
+                    <div class="stat-card">
+                        <div class="stat-icon purple"><i class="fas fa-building"></i></div>
+                        <div>
+                            <div class="stat-number">
+                                <%= companyStats.length %>
+                            </div>
+                            <div class="stat-label">Perusahaan</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md">
+                    <div class="stat-card">
+                        <div class="stat-icon blue"><i class="fas fa-file-alt"></i></div>
+                        <div>
+                            <div class="stat-number">
+                                <%= totalReports %>
+                            </div>
+                            <div class="stat-label">Laporan</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md">
+                    <div class="stat-card">
+                        <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
+                        <div>
+                            <div class="stat-number">
+                                <%= totalApproved %>
+                            </div>
+                            <div class="stat-label">Approved</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md">
+                    <div class="stat-card">
+                        <div class="stat-icon orange"><i class="fas fa-clock"></i></div>
+                        <div>
+                            <div class="stat-number">
+                                <%= totalSubmitted %>
+                            </div>
+                            <div class="stat-label">Review</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md">
+                    <div class="stat-card border-success border-opacity-25" style="background: rgba(16,185,129,0.05);">
+                        <div class="stat-icon green"><i class="fas fa-money-bill-wave"></i></div>
+                        <div>
+                            <div class="stat-number" style="font-size: 1.1rem;">
+                                Rp <%= totalNominal.toLocaleString('id-ID') %>
+                            </div>
+                            <div class="stat-label">Total Nominal</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="row g-4 mb-4">
+                <div class="col-lg-7">
+                    <div class="card" style="height:100%">
+                        <div class="card-header-custom">
+                            <h5><i class="fas fa-chart-bar me-2"></i>Laporan per Perusahaan</h5>
+                        </div>
+                        <div class="card-body-custom" style="position:relative;height:280px;">
+                            <canvas id="companyChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-5">
+                    <div class="card" style="height:100%">
+                        <div class="card-header-custom">
+                            <h5><i class="fas fa-chart-pie me-2"></i>Distribusi Status</h5>
+                        </div>
+                        <div class="card-body-custom" style="position:relative;height:280px;">
+                            <canvas id="statusChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Per company stats table -->
+            <div class="card mb-4">
+                <div class="card-header-custom">
+                    <h5><i class="fas fa-building me-2"></i>Rekap per Perusahaan</h5>
+                </div>
+                <div class="card-body-custom p-0">
+                    <div class="table-wrapper">
+                        <table class="tbl">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Perusahaan</th>
+                                    <th>Total</th>
+                                    <th>Draft</th>
+                                    <th>Submitted</th>
+                                    <th>Approved</th>
+                                    <th>% Selesai</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% Object.entries(byCompany).forEach(([name, d], index)=> { %>
+                                    <% const tot=d.draft + d.submitted + d.approved; %>
+                                        <tr>
+                                            <td class="text-muted small fw-bold">#<%= index + 1 %>
+                                            </td>
+                                            <td><strong>
+                                                    <%= name %>
+                                                </strong></td>
+                                            <td>
+                                                <%= tot %>
+                                            </td>
+                                            <td><span class="badge-status badge-draft">
+                                                    <%= d.draft %>
+                                                </span></td>
+                                            <td><span class="badge-status badge-submitted">
+                                                    <%= d.submitted %>
+                                                </span></td>
+                                            <td><span class="badge-status badge-approved">
+                                                    <%= d.approved %>
+                                                </span></td>
+                                            <td>
+                                                <div
+                                                    style="background:var(--surface2);border-radius:20px;height:6px;overflow:hidden;">
+                                                    <div
+                                                        style="height:100%;background:linear-gradient(90deg,#10b981,#059669);width:<%= tot > 0 ? Math.round(d.approved/tot*100) : 0 %>%;border-radius:20px;">
+                                                    </div>
+                                                </div>
+                                                <small style="color:var(--text-muted);">
+                                                    <%= tot> 0 ? Math.round(d.approved/tot*100) : 0 %>%
+                                                </small>
+                                            </td>
+                                        </tr>
+                                        <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter + All Reports -->
+            <div class="card mb-4">
+                <div class="card-header-custom">
+                    <h5><i class="fas fa-filter me-2"></i>Filter Laporan Global</h5>
+                </div>
+                <div class="card-body-custom">
+                    <form method="GET" action="/sda/dashboard" class="row g-3">
+                        <div class="col-md-2">
+                            <label class="form-label">Dari</label>
+                            <input type="date" class="form-control" name="date_from"
+                                value="<%= filters.date_from || '' %>">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Sampai</label>
+                            <input type="date" class="form-control" name="date_to" value="<%= filters.date_to || '' %>">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Perusahaan</label>
+                            <select class="form-select" name="company_id">
+                                <option value="">Semua PT</option>
+                                <% companies.forEach(c=> { %>
+                                    <option value="<%= c.id %>" <%=filters.company_id==c.id ? 'selected' : '' %>><%=
+                                            c.company_name %>
+                                    </option>
+                                    <% }) %>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Divisi</label>
+                            <select class="form-select" name="dept_id">
+                                <option value="">Semua Divisi</option>
+                                <% departments.forEach(d=> { %>
+                                    <option value="<%= d.id %>" <%=filters.dept_id==d.id ? 'selected' : '' %>><%=
+                                            d.department_name %>
+                                    </option>
+                                    <% }) %>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" name="status">
+                                <option value="">Semua</option>
+                                <option value="draft" <%=filters.status==='draft' ? 'selected' : '' %>>Draft</option>
+                                <option value="submitted" <%=filters.status==='submitted' ? 'selected' : '' %>>Submitted
+                                </option>
+                                <option value="approved" <%=filters.status==='approved' ? 'selected' : '' %>>Approved
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end gap-2">
+                            <button type="submit" class="btn btn-primary flex-1"><i class="fas fa-search"></i></button>
+                            <a href="/sda/dashboard" class="btn btn-secondary">Reset</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="mb-3 d-flex gap-2">
+                <a href="/export/excel" class="btn btn-success btn-sm"><i class="fas fa-file-excel"></i> Export
+                    Excel</a>
+                <a href="/export/pdf" class="btn btn-danger btn-sm"><i class="fas fa-file-pdf"></i> Export PDF</a>
+            </div>
+
+            <div class="card">
+                <div class="card-header-custom">
+                    <h5><i class="fas fa-list me-2"></i>Semua Laporan (<%= totalReports %>)</h5>
+                </div>
+                <div class="card-body-custom p-0">
+                    <div class="table-wrapper">
+                        <table class="tbl">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Tanggal</th>
+                                    <th>Nama</th>
+                                    <th>PT</th>
+                                    <th>Divisi</th>
+                                    <th>Tugas</th>
+                                    <th>Lampiran</th>
+                                    <th>Status</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% if (reports.length===0) { %>
+                                    <tr>
+                                        <td colspan="9" style="text-align:center;padding:40px;color:var(--text-muted);">
+                                            Tidak ada laporan</td>
+                                    </tr>
+                                    <% } %>
+                                        <% reports.forEach((r, index)=> { %>
+                                            <tr>
+                                                <td class="text-muted small fw-bold">#<%= index + 1 %>
+                                                </td>
+                                                <td>
+                                                    <%= new Date(r.report_date).toLocaleDateString('id-ID',
+                                                        {day: '2-digit' , month: 'short' , year: 'numeric' }) %>
+                                                </td>
+                                                <td><strong>
+                                                        <%= r.full_name %>
+                                                    </strong><br><small style="color:var(--text-muted);">
+                                                        <%= r.position %>
+                                                    </small></td>
+                                                <td style="font-size:0.8rem;color:var(--text-muted);">
+                                                    <%= r.company_name %>
+                                                </td>
+                                                <td style="font-size:0.82rem;">
+                                                    <%= r.department_name %>
+                                                </td>
+                                                <td style="max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
+                                                    title="<%= r.task_description %>">
+                                                    <%= r.task_description %>
+                                                </td>
+                                                <td style="text-align:center;">
+                                                    <% if (r.attachment_path) { %>
+                                                        <a href="/attachment/view/<%= r.attachment_path.split('/').pop() %>"
+                                                            class="text-primary" title="Lihat Lampiran">
+                                                            <i class="fas fa-paperclip"></i>
+                                                        </a>
+                                                        <% } else { %>
+                                                            <span class="text-muted small">—</span>
+                                                            <% } %>
+                                                </td>
+                                                <td><span class="badge-status badge-<%= r.status %>">
+                                                        <% if (r.status==='approved' ) { %> Approve
+                                                            <% } else if (r.status==='rejected' ) { %> Reject
+                                                                <% } else if (r.status==='submitted' ) { %> Proses
+                                                                    <% } else { %>
+                                                                        <%= r.status %>
+                                                                            <% } %>
+                                                    </span></td>
+                                                <td>
+                                                    <div class="d-flex gap-1">
+                                                        <a href="/sda/report/<%= r.id %>"
+                                                            class="btn btn-xs btn-outline-primary" title="Lihat Detail">
+                                                            <i class="fas fa-eye"></i>
+                                                        </a>
+                                                        <% if (r.status==='submitted' || r.status==='proses' ) { %>
+                                                            <button onclick="quickAction('<%= r.id %>', 'approved')"
+                                                                class="btn btn-xs btn-success" title="Setujui Cepat">
+                                                                <i class="fas fa-check"></i>
+                                                            </button>
+                                                            <% } %>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header-custom">
+                    <h5><i class="fas fa-chart-line me-2"></i>Tren Laporan Harian (30 Hari Terakhir)</h5>
+                </div>
+                <div class="card-body-custom" style="position:relative;height:220px;">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+
+            <div id="chartDataStore" data-labels='<%- JSON.stringify(Object.keys(byCompany)) %>'
+                data-approved='<%- JSON.stringify(Object.values(byCompany).map(d => d.approved)) %>'
+                data-submitted='<%- JSON.stringify(Object.values(byCompany).map(d => d.submitted)) %>'
+                data-draft='<%- JSON.stringify(Object.values(byCompany).map(d => d.draft)) %>'
+                data-status='[<%= totalApproved %>, <%= totalSubmitted %>, <%= totalDraft %>]'
+                data-trend-labels='<%- JSON.stringify(trend.map(t => t.report_date)) %>'
+                data-trend-counts='<%- JSON.stringify(trend.map(t => parseInt(t.total))) %>' style="display:none;">
+            </div>
+
+            <script>
+                async function quickAction(id, status) {
+                    const confirm = await Swal.fire({
+                        title: 'Setujui Laporan?',
+                        text: "Laporan akan langsung disetujui (Approved).",
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonText: 'Ya, Approve',
+                        cancelButtonText: 'Batal'
+                    });
+
+                    if (confirm.isConfirmed) {
+                        try {
+                            const res = await fetch('/admin/review/' + id, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ new_status: status, manager_note: 'Quick approve via SDA dashboard' })
+                            });
+                            const data = await res.json();
+                            if (data.success) {
+                                Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Laporan disetujui', timer: 1000, showConfirmButton: false })
+                                    .then(() => window.location.reload());
+                            } else {
+                                throw new Error(data.message);
+                            }
+                        } catch (err) {
+                            Swal.fire('Gagal', err.message, 'error');
+                        }
+                    }
+                }
+
+                const ds = document.getElementById('chartDataStore');
+                const companyLabels = JSON.parse(ds.dataset.labels || '[]');
+                const companyApproved = JSON.parse(ds.dataset.approved || '[]');
+                const companySubmitted = JSON.parse(ds.dataset.submitted || '[]');
+                const companyDraft = JSON.parse(ds.dataset.draft || '[]');
+                const statusCounts = JSON.parse(ds.dataset.status || '[0,0,0]');
+
+                const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                const gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
+                const textColor = isDark ? '#94a3b8' : '#6b7280';
+                Chart.defaults.color = textColor;
+
+                const trendLabels = JSON.parse(ds.dataset.trendLabels || '[]');
+                const trendCounts = JSON.parse(ds.dataset.trendCounts || '[]');
+
+                new Chart(document.getElementById('companyChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: companyLabels,
+                        datasets: [
+                            { label: 'Approved', data: companyApproved, backgroundColor: '#10b981', borderRadius: 6 },
+                            { label: 'Submitted', data: companySubmitted, backgroundColor: '#f59e0b', borderRadius: 6 },
+                            { label: 'Draft', data: companyDraft, backgroundColor: '#6b7280', borderRadius: 6 }
+                        ]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { position: 'bottom', labels: { usePointStyle: true } } },
+                        scales: {
+                            x: { stacked: true, grid: { color: gridColor } },
+                            y: { stacked: true, grid: { color: gridColor }, beginAtZero: true }
+                        }
+                    }
+                });
+
+                new Chart(document.getElementById('statusChart'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Approved', 'Submitted', 'Draft'],
+                        datasets: [{
+                            data: statusCounts,
+                            backgroundColor: ['#10b981', '#f59e0b', '#6b7280'],
+                            borderWidth: 0,
+                            hoverOffset: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false, cutout: '65%',
+                        plugins: { legend: { position: 'bottom', labels: { usePointStyle: true } } }
+                    }
+                });
+
+                new Chart(document.getElementById('trendChart'), {
+                    type: 'line',
+                    data: {
+                        labels: trendLabels.map(d => {
+                            const dt = new Date(d);
+                            return dt.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
+                        }),
+                        datasets: [{
+                            label: 'Jumlah Laporan',
+                            data: trendCounts,
+                            borderColor: '#6366f1',
+                            backgroundColor: 'rgba(99,102,241,0.12)',
+                            tension: 0.4,
+                            fill: true, pointRadius: 3, pointBackgroundColor: '#6366f1'
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { grid: { color: gridColor } },
+                            y: { grid: { color: gridColor }, beginAtZero: true, ticks: { stepSize: 1 } }
+                        }
+                    }
+                });
+            </script>
+
+            <%- include('../partials/layout_foot') %>

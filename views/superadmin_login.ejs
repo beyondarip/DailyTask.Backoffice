@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Admin Login</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0f172a;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            caret-color: transparent;
+        }
+
+        .login-card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 400px;
+            padding: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header i {
+            font-size: 3rem;
+            color: #007AFF;
+            margin-bottom: 15px;
+        }
+
+        .login-header h3 {
+            font-weight: 800;
+            color: #1e293b;
+        }
+
+        .form-floating>.form-control {
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .btn-admin {
+            background: #007AFF;
+            border: none;
+            border-radius: 12px;
+            padding: 14px;
+            font-weight: 700;
+            transition: all 0.3s;
+        }
+
+        .btn-admin:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 122, 255, 0.2);
+        }
+
+        .password-field {
+            position: relative;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #64748b;
+            z-index: 10;
+            padding: 5px;
+            user-select: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-card">
+        <div class="login-header">
+            <i class="fas fa-user-shield"></i>
+            <h3>Super Admin</h3>
+            <p class="text-muted small">Special Access Required</p>
+        </div>
+
+        <form action="/supadmin/login" method="POST">
+            <div class="form-floating mb-3">
+                <input type="email" class="form-control" id="email" name="email" placeholder="Email" required>
+                <label for="email">Email</label>
+            </div>
+            <div class="password-field mb-4">
+                <div class="form-floating">
+                    <input type="password" class="form-control" id="password" name="password" placeholder="Password"
+                        required>
+                    <label for="password">Password</label>
+                </div>
+                <i class="fas fa-eye-slash password-toggle" id="togglePassword"></i>
+            </div>
+            <button type="submit" class="btn btn-primary w-100 btn-admin text-white">
+                VERIFY ACCESS
+            </button>
+        </form>
+    </div>
+
+    <script>
+        const togglePassword = document.querySelector('#togglePassword');
+        const passwordInput = document.querySelector('#password');
+
+        togglePassword.addEventListener('click', function () {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            if (type === 'text') {
+                this.classList.replace('fa-eye-slash', 'fa-eye');
+            } else {
+                this.classList.replace('fa-eye', 'fa-eye-slash');
+            }
+        });
+
+        <% if (typeof error !== 'undefined' && error) { %>
+            Swal.fire({
+                icon: 'error',
+                title: 'Akses Gagal',
+                text: '<%= error %>',
+                confirmButtonColor: '#007AFF'
+            });
+        <% } %>
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,188 @@
+<% const title='Master Data — Divisi' ; const pageTitle='Master Data Divisi' ; const activePage='departments' ; %>
+    <%- include('../partials/layout_head') %>
+
+        <div class="page-header d-flex align-items-center justify-content-between">
+            <div>
+                <h1><i class="fas fa-sitemap me-2"></i>Master Data Divisi</h1>
+                <p>Total: <%= departments.length %> divisi</p>
+            </div>
+            <button class="btn btn-primary" onclick="openModal()">
+                <i class="fas fa-plus"></i> Tambah Divisi
+            </button>
+        </div>
+
+        <% if (typeof msg !=='undefined' && msg) { %>
+            <div class="alert alert-<%= ['added','updated','deleted','success'].includes(msg) ? 'success' : 'danger' %>"
+                data-auto-dismiss>
+                <i
+                    class="fas fa-<%= ['added','updated','deleted','success'].includes(msg) ? 'check-circle' : 'exclamation-circle' %>"></i>
+                <%= typeof msgText !=='undefined' ? msgText : (['added','updated','deleted','success'].includes(msg)
+                    ? 'Berhasil!' : 'Terjadi kesalahan.' ) %>
+            </div>
+            <% } %>
+                <% if (typeof err !=='undefined' && err) { %>
+                    <div class="alert alert-danger" data-auto-dismiss>
+                        <i class="fas fa-exclamation-circle"></i>
+                        <%= err %>
+                    </div>
+                    <% } %>
+
+                        <div class="card">
+                            <div class="card-body-custom p-0">
+                                <div class="table-wrapper">
+                                    <table class="tbl">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Nama Divisi</th>
+                                                <th>Perusahaan</th>
+                                                <th>Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% if (departments.length===0) { %>
+                                                <tr>
+                                                    <td colspan="4"
+                                                        style="text-align:center;padding:40px;color:var(--text-muted);">
+                                                        Belum
+                                                        ada divisi</td>
+                                                </tr>
+                                                <% } %>
+                                                    <% departments.forEach((d, index)=> { %>
+                                                        <tr>
+                                                            <td style="color:var(--text-muted);">#<%= index + 1 %>
+                                                            </td>
+                                                            <td><strong>
+                                                                    <%= d.department_name %>
+                                                                </strong></td>
+                                                            <td style="vertical-align: top; min-width: 450px;">
+                                                                <% if (d.company_names && d.company_names.length> 0) {
+                                                                    %>
+                                                                    <div
+                                                                        style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;">
+                                                                        <% d.company_names.forEach(name=> { %>
+                                                                            <div class="badge bg-light text-dark px-2 py-1"
+                                                                                style="font-size: 0.65rem; border: 1px solid #e2e8f0; border-radius: 4px; display: flex; align-items: center; justify-content: flex-start; overflow: hidden; font-weight: 500;"
+                                                                                title="<%= name %>">
+                                                                                <span
+                                                                                    style="color: #3b82f6; font-weight: 800; margin-right: 4px; flex-shrink: 0;">#</span>
+                                                                                <span
+                                                                                    style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                                                                    <%= name %>
+                                                                                </span>
+                                                                            </div>
+                                                                            <% }) %>
+                                                                    </div>
+                                                                    <% } else { %>
+                                                                        <span class="text-muted small"><em>Belum
+                                                                                diatur</em></span>
+                                                                        <% } %>
+                                                            </td>
+                                                            <td>
+                                                                <button class="btn btn-xs btn-primary"
+                                                                    onclick='openModal("<%= d.id %>", "<%= d.department_name %>", <%- JSON.stringify(d.company_ids) %>)'>
+                                                                    <i class="fas fa-edit"></i>
+                                                                </button>
+                                                                <button class="btn btn-xs btn-danger ms-1"
+                                                                    onclick="deleteDept('<%= d.id %>', '<%= d.department_name %>')">
+                                                                    <i class="fas fa-trash"></i>
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                        <% }) %>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="modal fade" id="deptModal" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="modalTitle">Tambah Divisi</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <form id="deptForm" method="POST" action="/sda/departments/add">
+                                        <input type="hidden" name="id" id="deptId">
+                                        <div class="modal-body">
+                                            <div class="form-group mb-3">
+                                                <label class="form-label">Nama Divisi *</label>
+                                                <input type="text" class="form-control" name="department_name"
+                                                    id="deptName" required style="text-transform: uppercase;"
+                                                    oninput="this.value = this.value.toUpperCase()">
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">Aktif di Perusahaan:</label>
+                                                <div class="company-selection-grid"
+                                                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; max-height: 200px; overflow-y: auto; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px;">
+                                                    <% companies.forEach(c=> { %>
+                                                        <div class="form-check">
+                                                            <input class="form-check-input company-checkbox"
+                                                                type="checkbox" name="company_ids" value="<%= c.id %>"
+                                                                id="comp_<%= c.id %>">
+                                                            <label class="form-check-label" for="comp_<%= c.id %>">
+                                                                <%= c.company_name %>
+                                                            </label>
+                                                        </div>
+                                                        <% }) %>
+                                                </div>
+                                                <small class="text-muted mt-1 d-block">Pilih perusahaan mana saja yang
+                                                    menggunakan divisi ini.</small>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary"
+                                                data-bs-dismiss="modal">Batal</button>
+                                            <button type="submit" class="btn btn-primary">Simpan</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <script>
+                            const modal = new bootstrap.Modal(document.getElementById('deptModal'));
+
+                            function openModal(id, name, companyIds) {
+                                // Reset all checkboxes first
+                                document.querySelectorAll('.company-checkbox').forEach(cb => cb.checked = false);
+
+                                if (id) {
+                                    document.getElementById('modalTitle').textContent = 'Edit Divisi';
+                                    document.getElementById('deptId').value = id;
+                                    document.getElementById('deptName').value = name;
+                                    document.getElementById('deptForm').action = '/sda/departments/edit/' + id;
+
+                                    // Check relevant checkboxes
+                                    if (companyIds && Array.isArray(companyIds)) {
+                                        companyIds.forEach(cId => {
+                                            const cb = document.getElementById('comp_' + cId);
+                                            if (cb) cb.checked = true;
+                                        });
+                                    }
+                                } else {
+                                    document.getElementById('modalTitle').textContent = 'Tambah Divisi';
+                                    document.getElementById('deptForm').reset();
+                                    document.getElementById('deptForm').action = '/sda/departments/add';
+                                }
+                                modal.show();
+                            }
+
+                            async function deleteDept(id, name) {
+                                const result = await Swal.fire({
+                                    icon: 'warning', title: 'Hapus Divisi?', text: `Divisi "${name}" akan dihapus.`,
+                                    showCancelButton: true, confirmButtonColor: '#ef4444',
+                                    confirmButtonText: 'Ya, Hapus!', cancelButtonText: 'Batal'
+                                });
+                                if (result.isConfirmed) {
+                                    const form = document.createElement('form');
+                                    form.method = 'POST';
+                                    form.action = '/sda/departments/delete/' + id;
+                                    document.body.appendChild(form);
+                                    form.submit();
+                                }
+                            }
+                        </script>
+
+                        <%- include('../partials/layout_foot') %>

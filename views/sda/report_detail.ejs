@@ -1,0 +1,403 @@
+<% const title='Detail Laporan' ; const pageTitle='Detail Laporan — Super Duper Admin' ; const activePage='dashboard' ;
+    const deptName=(report.department_name || '' ).toLowerCase(); const
+    isFinance=['sales','marketing','finance','purchasing'].includes(deptName); const isProduksi=deptName==='produksi' ;
+    %>
+    <%- include('../partials/layout_head') %>
+
+        <div class="page-header">
+            <h1><i class="fas fa-file-alt me-2"></i>Detail Laporan</h1>
+            <p>
+                <a href="/sda/dashboard" style="color:var(--primary);text-decoration:none;">← Kembali ke Dashboard</a>
+            </p>
+        </div>
+
+        <div class="row g-4">
+            <!-- Laporan Detail -->
+            <div class="col-lg-8">
+                <div class="card mb-4">
+                    <div class="card-header-custom">
+                        <div>
+                            <h5 style="margin:0;">
+                                <%= new
+                                    Date(report.report_date).toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})
+                                    %>
+                            </h5>
+                            <span style="color:var(--text-muted);font-size:0.82rem;">
+                                Jam <%= report.report_time ? report.report_time.substring(0,5) : '-' %>
+                            </span>
+                        </div>
+                        <span class="badge-status badge-<%= report.status %>">
+                            <%= report.status %>
+                        </span>
+                    </div>
+                    <div class="card-body-custom">
+                        <!-- Info User -->
+                        <div class="mb-4 p-3" style="background:var(--surface2);border-radius:12px;">
+                            <div class="row g-2" style="font-size:0.85rem;">
+                                <div class="col-md-6">
+                                    <span style="color:var(--text-muted);">Nama</span><br>
+                                    <strong>
+                                        <%= report.full_name %>
+                                    </strong>
+                                </div>
+                                <div class="col-md-6">
+                                    <span style="color:var(--text-muted);">Jabatan</span><br>
+                                    <strong>
+                                        <%= report.position || '—' %>
+                                    </strong>
+                                </div>
+                                <div class="col-md-6">
+                                    <span style="color:var(--text-muted);">Divisi</span><br>
+                                    <strong>
+                                        <%= report.department_name %>
+                                    </strong>
+                                </div>
+                                <div class="col-md-6">
+                                    <span style="color:var(--text-muted);">Perusahaan</span><br>
+                                    <strong>
+                                        <%= report.company_name %>
+                                    </strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="form-label" style="margin-bottom:6px;color:var(--primary);">Deskripsi Tugas
+                            </div>
+                            <div
+                                style="background:var(--surface2);padding:14px;border-radius:10px;font-size:0.9rem;line-height:1.7;color:var(--text);white-space:pre-wrap;">
+                                <%= report.task_description || '—' %>
+                            </div>
+                        </div>
+
+                        <% if (report.issue) { %>
+                            <div class="mb-4">
+                                <div class="form-label" style="margin-bottom:6px;color:var(--warning);">Kendala</div>
+                                <div
+                                    style="background:var(--surface2);padding:14px;border-radius:10px;font-size:0.9rem;line-height:1.7;color:var(--text);">
+                                    <%= report.issue %>
+                                </div>
+                            </div>
+                            <% } %>
+
+                                <% if (report.solution) { %>
+                                    <div class="mb-4">
+                                        <div class="form-label" style="margin-bottom:6px;color:var(--success);">Solusi
+                                        </div>
+                                        <div
+                                            style="background:var(--surface2);padding:14px;border-radius:10px;font-size:0.9rem;line-height:1.7;color:var(--text);">
+                                            <%= report.solution %>
+                                        </div>
+                                    </div>
+                                    <% } %>
+
+                                        <% if (report.result) { %>
+                                            <div class="mb-4">
+                                                <div class="form-label" style="margin-bottom:6px;color:var(--info);">
+                                                    Hasil</div>
+                                                <div
+                                                    style="background:var(--surface2);padding:14px;border-radius:10px;font-size:0.9rem;line-height:1.7;color:var(--text);">
+                                                    <%= report.result %>
+                                                </div>
+                                            </div>
+                                            <% } %>
+
+                                                <% if (report.manager_note) { %>
+                                                    <div class="mb-4">
+                                                        <div class="form-label"
+                                                            style="margin-bottom:6px;color:var(--danger);">
+                                                            <i class="fas fa-comment-dots me-1"></i>Catatan Manager
+                                                        </div>
+                                                        <div
+                                                            style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);padding:14px;border-radius:10px;font-size:0.9rem;line-height:1.7;color:var(--text);word-break: break-word; overflow-wrap: anywhere;">
+                                                            <%= report.manager_note %>
+                                                        </div>
+                                                    </div>
+                                                    <% } %>
+
+                                                        <% if ((isFinance || isProduksi) && financeItems &&
+                                                            financeItems.length> 0) { %>
+                                                            <div class="mb-4">
+                                                                <div class="form-label"
+                                                                    style="margin-bottom:10px;color:var(--primary);">
+                                                                    <i
+                                                                        class="fas <%= isProduksi ? 'fa-industry' : 'fa-receipt' %> me-1"></i>
+                                                                    <%= isProduksi ? 'Detail Produksi'
+                                                                        : 'Detail Item Transaksi' %>
+                                                                </div>
+                                                                <div class="table-wrapper">
+                                                                    <table class="tbl">
+                                                                        <thead>
+                                                                            <tr>
+                                                                                <th>
+                                                                                    <%= isProduksi ? 'Keterangan'
+                                                                                        : 'Item' %>
+                                                                                </th>
+                                                                                <th>Qty</th>
+                                                                                <% if (!isProduksi) { %>
+                                                                                    <th>Harga Satuan</th>
+                                                                                    <th>Total</th>
+                                                                                    <% } %>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody>
+                                                                            <% let grandTotal=0; %>
+                                                                                <% financeItems.forEach(item=> { %>
+                                                                                    <% grandTotal
+                                                                                        +=parseFloat(item.total_price ||
+                                                                                        0); %>
+                                                                                        <tr>
+                                                                                            <td>
+                                                                                                <%= item.item_name %>
+                                                                                            </td>
+                                                                                            <td>
+                                                                                                <%= parseFloat(item.qty).toLocaleString('id-ID')
+                                                                                                    %>
+                                                                                            </td>
+                                                                                            <% if (!isProduksi) { %>
+                                                                                                <td>Rp <%=
+                                                                                                        parseFloat(item.unit_price).toLocaleString('id-ID')
+                                                                                                        %>
+                                                                                                </td>
+                                                                                                <td><strong>Rp <%=
+                                                                                                            parseFloat(item.total_price).toLocaleString('id-ID')
+                                                                                                            %></strong>
+                                                                                                </td>
+                                                                                                <% } %>
+                                                                                        </tr>
+                                                                                        <% }) %>
+                                                                        </tbody>
+                                                                        <% if (!isProduksi) { %>
+                                                                            <tfoot>
+                                                                                <tr>
+                                                                                    <td colspan="3"
+                                                                                        style="text-align:right;font-weight:700;">
+                                                                                        Grand Total</td>
+                                                                                    <td><strong
+                                                                                            style="color:var(--primary);">Rp
+                                                                                            <%= grandTotal.toLocaleString('id-ID')
+                                                                                                %>
+                                                                                        </strong></td>
+                                                                                </tr>
+                                                                            </tfoot>
+                                                                            <% } %>
+                                                                    </table>
+                                                                </div>
+                                                            </div>
+                                                            <% } %>
+
+                                                                <% if (attachments && attachments.length> 0) { %>
+                                                                    <div class="mt-4">
+                                                                        <div class="form-label"
+                                                                            style="margin-bottom:8px;">
+                                                                            <i
+                                                                                class="fas fa-paperclip me-1"></i>Lampiran
+                                                                            (<%= attachments.length %> file)
+                                                                        </div>
+                                                                        <div class="d-flex flex-wrap gap-2">
+                                                                            <% attachments.forEach((att, idx)=> { %>
+                                                                                <% if (att.attachment_path) { %>
+                                                                                    <a href="/attachment/view/<%= att.attachment_path.split('/').pop() %>"
+                                                                                        class="btn btn-sm btn-outline-secondary">
+                                                                                        <i
+                                                                                            class="fas fa-file-alt me-1"></i>
+                                                                                        File <%= idx + 1 %>
+                                                                                    </a>
+                                                                                    <% } %>
+                                                                                        <% }) %>
+                                                                        </div>
+                                                                    </div>
+                                                                    <% } else if (report.attachment_path) { %>
+                                                                        <div class="mt-4">
+                                                                            <div class="form-label"
+                                                                                style="margin-bottom:8px;">
+                                                                                <i
+                                                                                    class="fas fa-paperclip me-1"></i>Lampiran
+                                                                            </div>
+                                                                            <a href="/attachment/view/<%= report.attachment_path.split('/').pop() %>"
+                                                                                class="btn btn-secondary">
+                                                                                <i
+                                                                                    class="fas fa-external-link-alt me-1"></i>
+                                                                                Buka Lampiran
+                                                                            </a>
+                                                                        </div>
+                                                                        <% } %>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel Kanan: Review & Solution -->
+            <div class="col-lg-4">
+                <% if (report.is_asked_director) { %>
+                    <div class="card mb-4 border-danger">
+                        <div class="card-header-custom bg-danger text-white">
+                            <h5 class="text-white"><i class="fas fa-magic me-2"></i>Solusi Director</h5>
+                            <% if (!report.director_solution && !report.manager_note) { %>
+                                <span class="badge bg-white text-danger">URGENT</span>
+                                <% } else { %>
+                                    <span class="badge bg-success">TERJAWAB</span>
+                                    <% } %>
+                        </div>
+                        <div class="card-body-custom">
+                            <form action="/sda/report/give-solution/<%= report.id %>" method="POST">
+                                <div class="form-group mb-3">
+                                    <label class="form-label fw-bold">Solusi Anda <span
+                                            class="text-danger">*</span></label>
+                                    <textarea class="form-control" name="director_solution" rows="4"
+                                        placeholder="Berikan solusi/arahan untuk masalah ini..."
+                                        required><%= report.director_solution || '' %></textarea>
+                                </div>
+                                <div class="form-group mb-3">
+                                    <label class="form-label fw-bold">Catatan Manager (Notes)</label>
+                                    <textarea class="form-control" name="manager_note" rows="2"
+                                        placeholder="Catatan tambahan..."><%= report.manager_note || '' %></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-danger w-100">
+                                    <i class="fas fa-paper-plane me-1"></i>
+                                    <%= (report.director_solution || report.manager_note) ? 'Update Solusi'
+                                        : 'Kirim Solusi' %>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <% } %>
+
+                        <div class="card mb-3" style="position:sticky;top:80px;">
+                            <div class="card-header-custom">
+                                <h5><i class="fas fa-user-check me-2"></i>Review Laporan</h5>
+                            </div>
+                            <div class="card-body-custom">
+                                <div id="statusDisplay" class="<%= report.status==='approved' ? '' : 'd-none' %>">
+                                    <div style="text-align:center;padding:20px 0;color:var(--success);">
+                                        <i class="fas fa-check-circle"
+                                            style="font-size:2.5rem;margin-bottom:12px;display:block;"></i>
+                                        <strong>Laporan Disetujui</strong>
+                                        <p style="color:var(--text-muted);font-size:0.82rem;margin-top:8px;">Laporan ini
+                                            sudah
+                                            divalidasi.</p>
+                                        <button type="button" class="btn btn-sm btn-outline-primary mt-3 w-100"
+                                            onclick="showReviewForm()">
+                                            <i class="fas fa-edit me-1"></i> Ubah Status / Review
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div id="reviewFormContainer" class="<%= report.status==='approved' ? 'd-none' : '' %>">
+                                    <form id="reviewForm" onsubmit="submitReview(event)">
+                                        <div class="form-group mb-3">
+                                            <label class="form-label">Catatan Manager</label>
+                                            <textarea class="form-control" name="manager_note" rows="4"
+                                                placeholder="Tambahkan catatan atau feedback..."><%= report.manager_note || '' %></textarea>
+                                        </div>
+                                        <div class="form-group mb-3">
+                                            <label class="form-label">Ubah Status</label>
+                                            <div style="display:flex;flex-direction:column;gap:10px;">
+                                                <label
+                                                    style="display:flex;align-items:center;gap:10px;font-size:0.9rem;cursor:pointer;">
+                                                    <input type="radio" name="new_status" value="submitted"
+                                                        <%=report.status==='submitted' || report.status==='proses'
+                                                        ?'checked':'' %>>
+                                                    Proses (Review)
+                                                </label>
+                                                <label
+                                                    style="display:flex;align-items:center;gap:10px;font-size:0.9rem;cursor:pointer;color:var(--success);font-weight:600;">
+                                                    <input type="radio" name="new_status" value="approved"
+                                                        <%=report.status==='approved' ?'checked':'' %>>
+                                                    ✓ Approve (Setujui)
+                                                </label>
+                                                <label
+                                                    style="display:flex;align-items:center;gap:10px;font-size:0.9rem;cursor:pointer;color:var(--danger);font-weight:600;">
+                                                    <input type="radio" name="new_status" value="rejected"
+                                                        <%=report.status==='rejected' || report.status==='reject'
+                                                        ?'checked':'' %>>
+                                                    ✗ Reject (Tolak)
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary w-100 py-2">
+                                            <i class="fas fa-save me-1"></i> Simpan Review
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Meta Info -->
+                        <div class="card">
+                            <div class="card-header-custom">
+                                <h5>Info Laporan</h5>
+                            </div>
+                            <div class="card-body-custom">
+                                <ul style="list-style:none;padding:0;font-size:0.85rem;line-height:2.5;">
+                                    <li>
+                                        <span style="color:var(--text-muted);">ID Laporan</span><br>
+                                        <strong>#<%= report.id %></strong>
+                                    </li>
+                                    <li>
+                                        <span style="color:var(--text-muted);">Dibuat</span><br>
+                                        <strong>
+                                            <%= new Date(report.created_at).toLocaleString('id-ID', {
+                                                timeZone: 'Asia/Jakarta' , day: '2-digit' , month: '2-digit' ,
+                                                year: 'numeric' , hour: '2-digit' , minute: '2-digit' }) %>
+                                        </strong>
+                                    </li>
+                                    <li>
+                                        <span style="color:var(--text-muted);">Status</span><br>
+                                        <span class="badge-status badge-<%= report.status %>">
+                                            <%= report.status %>
+                                        </span>
+                                    </li>
+                                </ul>
+                                <div style="margin-top:16px;">
+                                    <a href="/sda/dashboard" class="btn btn-secondary w-100">
+                                        <i class="fas fa-arrow-left"></i> Kembali
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+            </div>
+        </div>
+
+        <script>
+            function showReviewForm() {
+                document.getElementById('statusDisplay').classList.add('d-none');
+                document.getElementById('reviewFormContainer').classList.remove('d-none');
+            }
+
+            async function submitReview(e) {
+                e.preventDefault();
+                const btn = e.target.querySelector('button[type="submit"]');
+                const note = e.target.manager_note.value;
+                const statusEl = e.target.querySelector('[name="new_status"]:checked');
+                if (!statusEl) {
+                    Swal.fire({ icon: 'warning', title: 'Pilih Status', text: 'Pilih status laporan terlebih dahulu.' });
+                    return;
+                }
+
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Menyimpan...';
+
+                try {
+                    const res = await fetch('/admin/review/<%= report.id %>', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ manager_note: note, new_status: statusEl.value })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success', title: 'Berhasil!', text: 'Review berhasil disimpan.',
+                            timer: 1500, showConfirmButton: false
+                        }).then(() => window.location.reload());
+                    } else {
+                        throw new Error(data.message);
+                    }
+                } catch (err) {
+                    Swal.fire({ icon: 'error', title: 'Gagal', text: err.message });
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-save"></i> Simpan Review';
+                }
+            }
+        </script>
+
+        <%- include('../partials/layout_foot') %>

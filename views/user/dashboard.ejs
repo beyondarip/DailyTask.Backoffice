@@ -1,0 +1,287 @@
+<% const title='Dashboard Laporan Saya' ; const pageTitle='Dashboard Laporan — ' + user.full_name; const
+    activePage='dashboard' ; %>
+    <%- include('../partials/layout_head') %>
+
+        <div class="page-header">
+            <div>
+                <h1><i class="fas fa-home me-2"></i>Dashboard Saya</h1>
+                <p>Selamat datang kembali, <strong>
+                        <%= user.full_name %>
+                    </strong> | <span class="badge bg-primary">
+                        <%= user.department_name %>
+                    </span></p>
+            </div>
+            <a href="/report/new" class="btn btn-primary">
+                <i class="fas fa-plus-circle me-1"></i> Buat Laporan Baru
+            </a>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon blue"><i class="fas fa-file-alt"></i></div>
+                    <div>
+                        <div class="stat-number">
+                            <%= reports.length %>
+                        </div>
+                        <div class="stat-label">Total Laporan</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
+                    <div>
+                        <div class="stat-number">
+                            <%= reports.filter(r=> r.status === 'approved' || r.status === 'approve').length %>
+                        </div>
+                        <div class="stat-label">Approved</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon orange"><i class="fas fa-clock"></i></div>
+                    <div>
+                        <div class="stat-number">
+                            <%= reports.filter(r=> r.status === 'submitted' || r.status === 'proses').length %>
+                        </div>
+                        <div class="stat-label">Proses</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon purple"><i class="fas fa-file-signature"></i></div>
+                    <div>
+                        <div class="stat-number">
+                            <%= reports.filter(r=> r.status === 'draft').length %>
+                        </div>
+                        <div class="stat-label">Draft</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <% if (query.msg==='added' ) { %>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-1"></i> Laporan berhasil ditambahkan!
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <% } %>
+                <% if (query.msg==='updated' ) { %>
+                    <div class="alert alert-info alert-dismissible fade show" role="alert">
+                        <i class="fas fa-info-circle me-1"></i> Laporan berhasil diupdate.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    <% } %>
+
+                        <!-- Reports Table -->
+                        <div class="card">
+                            <div class="card-header-custom">
+                                <h5><i class="fas fa-history me-2"></i> Riwayat Laporan Saya</h5>
+                            </div>
+                            <div class="card-body-custom p-0">
+                                <div class="table-wrapper">
+                                    <table class="tbl">
+                                        <thead>
+                                            <tr>
+                                                <th>Tanggal</th>
+                                                <th>Jam</th>
+                                                <th>Laporan Kerja</th>
+                                                <th>Masalah</th>
+                                                <th>Solusi</th>
+                                                <th>Hasil</th>
+                                                <th>Lampiran</th>
+                                                <th>Catatan</th>
+                                                <th>Status</th>
+                                                <th>Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% if (reports.length===0) { %>
+                                                <tr>
+                                                    <td colspan="10"
+                                                        style="text-align:center;padding:40px;color:var(--text-muted);">
+                                                        <i class="fas fa-inbox"
+                                                            style="font-size:2rem;opacity:0.3;display:block;margin-bottom:8px;"></i>
+                                                        Belum ada laporan. <a href="/report/new"
+                                                            style="color:var(--primary);">Buat sekarang
+                                                            →</a>
+                                                    </td>
+                                                </tr>
+                                                <% } else { %>
+                                                    <% reports.forEach(r=> { %>
+                                                        <tr>
+                                                            <td><strong>
+                                                                    <%= new
+                                                                        Date(r.report_date).toLocaleDateString('id-ID',
+                                                                        { timeZone: 'Asia/Jakarta' , day: '2-digit' ,
+                                                                        month: 'short' , year: 'numeric' }) %>
+                                                                </strong></td>
+                                                            <td>
+                                                                <%= r.report_time ? r.report_time.substring(0,5) : '-'
+                                                                    %>
+                                                            </td>
+                                                            <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
+                                                                title="<%= r.task_description %>">
+                                                                <%= r.task_description %>
+                                                            </td>
+                                                            <td style="max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
+                                                                title="<%= r.issue %>">
+                                                                <%= r.issue || '—' %>
+                                                            </td>
+                                                            <td style="max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
+                                                                title="<%= r.solution %>">
+                                                                <%= r.solution || '—' %>
+                                                            </td>
+                                                            <td style="max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
+                                                                title="<%= r.result %>">
+                                                                <%= r.result || '—' %>
+                                                            </td>
+                                                            <td class="text-center">
+                                                                <% if (r.attachment_path) { %>
+                                                                    <a href="/attachment/view/<%= r.attachment_path.split('/').pop() %>"
+                                                                        class="text-primary" title="Lihat Lampiran">
+                                                                        <i class="fas fa-paperclip"></i>
+                                                                    </a>
+                                                                    <% } else { %>—<% } %>
+                                                            </td>
+                                                            <td>
+                                                                <% if (r.manager_note) { %>
+                                                                    <div class="small text-truncate"
+                                                                        style="max-width:120px; color:var(--text-muted);"
+                                                                        title="<%= r.manager_note %>">
+                                                                        <i
+                                                                            class="fas fa-comment-dots me-1 text-warning"></i>
+                                                                        <%= r.manager_note %>
+                                                                    </div>
+                                                                    <% } else { %>
+                                                                        <span class="text-muted small">—</span>
+                                                                        <% } %>
+                                                            </td>
+                                                            <td class="text-center">
+                                                                <span
+                                                                    class="badge-status <%= r.status === 'approved' || r.status === 'approve' ? 'badge-approved' : (r.status === 'rejected' || r.status === 'reject' ? 'badge-draft' : 'badge-submitted') %>">
+                                                                    <% if (r.status==='submitted' || r.status==='proses'
+                                                                        ) { %>
+                                                                        <i class="fas fa-clock me-1"></i> Proses
+                                                                        <% } else if (r.status==='approved' ||
+                                                                            r.status==='approve' ) { %>
+                                                                            <i class="fas fa-check-circle me-1"></i>
+                                                                            Approve
+                                                                            <% } else if (r.status==='rejected' ||
+                                                                                r.status==='reject' ) { %>
+                                                                                <i class="fas fa-times-circle me-1"></i>
+                                                                                Reject
+                                                                                <% } else { %>
+                                                                                    <%= r.status %>
+                                                                                        <% } %>
+                                                                </span>
+                                                            </td>
+                                                            <td>
+                                                                <div class="d-flex gap-1 flex-wrap">
+                                                                    <a href="/report/<%= r.id %>"
+                                                                        class="btn btn-xs btn-outline-primary"
+                                                                        title="Lihat Detail">
+                                                                        <i class="fas fa-eye"></i>
+                                                                    </a>
+                                                                    <% if (r.status !=='approved' && r.status
+                                                                        !=='approve' ) { %>
+                                                                        <button onclick="selfApprove('<%= r.id %>')"
+                                                                            class="btn btn-xs btn-success"
+                                                                            title="Setujui Selesai (Finish)">
+                                                                            <i class="fas fa-check-double"></i>
+                                                                        </button>
+                                                                        <a href="/report/edit/<%= r.id %>"
+                                                                            class="btn btn-xs btn-outline-warning"
+                                                                            title="Edit">
+                                                                            <i class="fas fa-edit"></i>
+                                                                        </a>
+                                                                        <% } %>
+                                                                            <button
+                                                                                onclick="askDirector('<%= r.id %>', '<%= r.task_description.replace(/'/g,'').replace(/\r?\n/g, ' ').substring(0, 50) %>', this)"
+                                                                                class="btn btn-xs <%= r.is_asked_director ? (r.director_solution ? 'btn-success' : 'btn-secondary') : 'btn-outline-danger' %> btn-ask-director"
+                                                                                title="<%= r.is_asked_director ? (r.director_solution ? 'Sudah Terjawab' : 'Sudah Ditanya') : 'Tanya Solusi kepada Director' %>"
+                                                                                <%=r.is_asked_director ? 'disabled' : ''
+                                                                                %>>
+                                                                                <i
+                                                                                    class="fas <%= r.is_asked_director ? (r.director_solution ? 'fa-check-double' : 'fa-hourglass-half') : 'fa-question-circle' %>"></i>
+                                                                                <span class="d-none d-lg-inline">
+                                                                                    <%= r.is_asked_director ?
+                                                                                        (r.director_solution
+                                                                                        ? 'Terjawab' : 'Telah Ditanya' )
+                                                                                        : 'Tanya Solusi' %>
+                                                                                </span>
+                                                                            </button>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                        <% }) %>
+                                                            <% } %>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <script>
+                            async function selfApprove(id) {
+                                const confirm = await Swal.fire({
+                                    title: 'Selesaikan Laporan?',
+                                    text: "Laporan Anda akan dianggap selesai (Approved) secara permanen.",
+                                    icon: 'question',
+                                    showCancelButton: true,
+                                    confirmButtonText: 'Ya, Finish!',
+                                    cancelButtonText: 'Batal'
+                                });
+
+                                if (confirm.isConfirmed) {
+                                    try {
+                                        const res = await fetch('/report/approve/' + id, { method: 'POST' });
+                                        const data = await res.json();
+                                        if (data.success) {
+                                            Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Laporan telah disetujui (Approved)', timer: 1000, showConfirmButton: false })
+                                                .then(() => window.location.reload());
+                                        } else {
+                                            throw new Error(data.message);
+                                        }
+                                    } catch (err) {
+                                        Swal.fire('Gagal', err.message, 'error');
+                                    }
+                                }
+                            }
+
+                            async function askDirector(reportId, taskDesc, btn) {
+                                const result = await Swal.fire({
+                                    title: '🔴 Tanya Solusi ke Director?',
+                                    html: `<div style="text-align:left;">
+                        <p>Permintaan solusi akan langsung dikirim ke <strong>Super Duper Admin (Director)</strong>.</p>
+                        <p class="text-muted small">Laporan: <em>${taskDesc}</em></p>
+                    </div>`,
+                                    icon: 'warning',
+                                    showCancelButton: true,
+                                    confirmButtonText: 'Ya, Kirim!',
+                                    confirmButtonColor: '#ef4444',
+                                    cancelButtonText: 'Batal'
+                                });
+
+                                if (result.isConfirmed) {
+                                    try {
+                                        const res = await fetch('/report/ask-director/' + reportId, { method: 'POST' });
+                                        const data = await res.json();
+                                        if (data.success) {
+                                            Swal.fire({ icon: 'success', title: 'Terkirim!', text: 'Permintaan solusi berhasil dikirim ke Director.', timer: 1800, showConfirmButton: false })
+                                                .then(() => window.location.reload());
+                                        } else {
+                                            throw new Error(data.message);
+                                        }
+                                    } catch (err) {
+                                        Swal.fire('Gagal', err.message, 'error');
+                                    }
+                                }
+                            }
+                        </script>
+
+                        <%- include('../partials/layout_foot') %>

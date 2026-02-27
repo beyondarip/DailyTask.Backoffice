@@ -1,0 +1,249 @@
+<% const title='User Divisi' ; const pageTitle='User Divisi Saya' ; const activePage='users' ; %>
+    <%- include('../partials/layout_head') %>
+
+        <div class="page-header d-flex justify-content-between align-items-center">
+            <div>
+                <h1><i class="fas fa-users me-2"></i>User Divisi <%= user.department_name %>
+                </h1>
+                <p class="m-0">Total: <%= users.length %> user aktif & nonaktif</p>
+            </div>
+            <button class="btn btn-primary rounded-pill px-4 fw-bold" data-bs-toggle="modal"
+                data-bs-target="#addUserModal">
+                <i class="fas fa-plus me-2"></i>Tambah Staff
+            </button>
+        </div>
+
+        <div class="card mb-3 border-0 shadow-sm">
+            <div class="card-body-custom p-3">
+                <form method="GET" class="row g-2 align-items-center">
+                    <div class="col-auto">
+                        <label class="fw-bold small text-muted">CARI USER:</label>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="input-group input-group-sm">
+                            <input type="text" class="form-control" name="search"
+                                placeholder="Nama, email, atau jabatan..."
+                                value="<%= typeof filters !== 'undefined' ? filters.search : '' %>"
+                                oninput="clearTimeout(this.delay); this.delay = setTimeout(() => this.form.submit(), 500)">
+                            <button class="btn btn-primary" type="submit">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <% if (typeof filters !=='undefined' && filters.search) { %>
+                        <div class="col-auto">
+                            <a href="/admin/users" class="btn btn-sm btn-outline-secondary rounded-pill">
+                                <i class="fas fa-times me-1"></i>Reset
+                            </a>
+                        </div>
+                        <% } %>
+                </form>
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body-custom p-0">
+                <div class="table-wrapper">
+                    <table class="tbl">
+                        <thead>
+                            <tr>
+                                <th>Nama</th>
+                                <th>Email</th>
+                                <th>Jabatan</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th class="text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% if (users.length===0) { %>
+                                <tr>
+                                    <td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted);">
+                                        Tidak ada user di divisi ini</td>
+                                </tr>
+                                <% } %>
+                                    <% users.forEach(u=> { %>
+                                        <tr>
+                                            <td>
+                                                <div style="display:flex;align-items:center;gap:10px;">
+                                                    <div
+                                                        style="width:32px;height:32px;background:linear-gradient(135deg,#6366f1,#a855f7);border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:0.8rem;">
+                                                        <%= u.full_name.charAt(0) %>
+                                                    </div>
+                                                    <strong>
+                                                        <%= u.full_name %>
+                                                    </strong>
+                                                </div>
+                                            </td>
+                                            <td style="color:var(--text-muted);">
+                                                <%= u.email %>
+                                            </td>
+                                            <td>
+                                                <%= u.position || '—' %>
+                                            </td>
+                                            <td><span class="role-badge role-<%= u.role_name %>">
+                                                    <%= u.role_name %>
+                                                </span></td>
+                                            <td>
+                                                <span
+                                                    class="badge-status <%= u.is_active ? 'badge-approved' : 'badge-draft' %>">
+                                                    <%= u.is_active ? 'Aktif' : 'Nonaktif' %>
+                                                </span>
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="d-flex justify-content-center gap-1">
+                                                    <button class="btn btn-xs btn-outline-primary" title="Edit Staff"
+                                                        onclick="openEditUserModal('<%= u.id %>', '<%= u.full_name %>', '<%= u.email %>', '<%= u.position %>', <%= u.is_active %>)">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="btn btn-xs btn-outline-danger" title="Hapus Permanen"
+                                                        onclick="confirmDeleteUser('<%= u.id %>', '<%= u.full_name %>')">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Add User -->
+        <div class="modal fade" id="addUserModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow" style="border-radius: 20px;">
+                    <div class="modal-header border-0 pb-0" style="padding: 25px 30px;">
+                        <h5 class="modal-title fw-bold">Tambah Staff Baru</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form action="/admin/users/add" method="POST">
+                        <div class="modal-body" style="padding: 25px 30px;">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small text-muted">NAMA LENGKAP</label>
+                                <input type="text" class="form-control" name="full_name" required
+                                    placeholder="Contoh: John Doe">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small text-muted">EMAIL</label>
+                                <input type="email" class="form-control" name="email" required
+                                    placeholder="nama@email.com">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small text-muted">PASSWORD</label>
+                                <input type="password" class="form-control" name="password" required
+                                    placeholder="Masukkan password">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small text-muted">JABATAN / POSISI</label>
+                                <input type="text" class="form-control" name="position"
+                                    placeholder="Contoh: Staff Marketing">
+                            </div>
+                            <div class="alert alert-info py-3 m-0 d-flex align-items-center"
+                                style="font-size: 0.85rem; border-radius: 12px; text-align: left !important; background-color: #e3f2fd; border: none; color: #0d47a1;">
+                                <i class="fas fa-info-circle me-2" style="font-size: 1.1rem;"></i>
+                                <div>Staff baru otomatis terdaftar di Divisi <strong>
+                                        <%= user.department_name %>
+                                    </strong>.</div>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0 pt-0" style="padding: 20px 30px;">
+                            <button type="button" class="btn btn-light rounded-pill px-4"
+                                data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold">Simpan User</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Edit User -->
+        <div class="modal fade" id="editUserModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow" style="border-radius: 20px;">
+                    <div class="modal-header border-0 pb-0" style="padding: 25px 30px;">
+                        <h5 class="modal-title fw-bold">Edit Data Staff</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form id="editUserForm" method="POST">
+                        <div class="modal-body" style="padding: 25px 30px;">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small text-muted">NAMA LENGKAP</label>
+                                <input type="text" class="form-control" name="full_name" id="edit_full_name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small text-muted">EMAIL</label>
+                                <input type="email" class="form-control" name="email" id="edit_email" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small text-muted">PASSWORD (KOSONGKAN JIKA TIDAK
+                                    GANTI)</label>
+                                <input type="password" class="form-control" name="password" placeholder="••••••••">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small text-muted">JABATAN</label>
+                                <input type="text" class="form-control" name="position" id="edit_position">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small text-muted">STATUS AKUN</label>
+                                <select class="form-select" name="is_active" id="edit_is_active">
+                                    <option value="true">Aktif</option>
+                                    <option value="false">Nonaktif (Blokir Akses)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0 pt-0" style="padding: 20px 30px;">
+                            <button type="button" class="btn btn-light rounded-pill px-4"
+                                data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold">Update Data</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function openEditUserModal(id, name, email, pos, active) {
+                document.getElementById('edit_full_name').value = name;
+                document.getElementById('edit_email').value = email;
+                document.getElementById('edit_position').value = pos !== '—' ? pos : '';
+                document.getElementById('edit_is_active').value = active.toString();
+                document.getElementById('editUserForm').action = '/admin/users/edit/' + id;
+
+                const modal = new bootstrap.Modal(document.getElementById('editUserModal'));
+                modal.show();
+            }
+
+            async function confirmDeleteUser(id, name) {
+                const confirm = await Swal.fire({
+                    title: 'Hapus User Permanen?',
+                    html: `User <strong>${name}</strong> akan dihapus selamanya dari database.<br><small class="text-danger">Aksi ini tidak dapat dibatalkan.</small>`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d63031',
+                    confirmButtonText: 'Ya, Hapus Permanen',
+                    cancelButtonText: 'Batal'
+                });
+
+                if (confirm.isConfirmed) {
+                    try {
+                        const res = await fetch('/admin/users/delete/' + id, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' }
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            Swal.fire({ icon: 'success', title: 'Berhasil', text: 'User telah dihapus permanen', timer: 1500, showConfirmButton: false })
+                                .then(() => window.location.reload());
+                        } else {
+                            throw new Error(data.message);
+                        }
+                    } catch (err) {
+                        Swal.fire('Gagal Hapus', err.message, 'error');
+                    }
+                }
+            }
+        </script>
+
+        <%- include('../partials/layout_foot') %>

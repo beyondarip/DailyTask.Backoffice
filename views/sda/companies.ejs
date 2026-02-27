@@ -1,0 +1,178 @@
+<% const title='Master Data — Perusahaan' ; const pageTitle='Master Data Perusahaan' ; const activePage='companies' ; %>
+    <%- include('../partials/layout_head') %>
+
+        <div class="page-header d-flex align-items-center justify-content-between">
+            <div>
+                <h1><i class="fas fa-building me-2"></i>Master Data Perusahaan</h1>
+                <p>Total: <%= companies.length %> perusahaan</p>
+            </div>
+            <button class="btn btn-primary" onclick="openModal()">
+                <i class="fas fa-plus"></i> Tambah Perusahaan
+            </button>
+        </div>
+
+        <% if (typeof msg !=='undefined' && msg) { %>
+            <div class="alert alert-<%= ['added','updated','deleted','success'].includes(msg) ? 'success' : 'danger' %>"
+                data-auto-dismiss>
+                <i
+                    class="fas fa-<%= ['added','updated','deleted','success'].includes(msg) ? 'check-circle' : 'exclamation-circle' %>"></i>
+                <%= typeof msgText !=='undefined' ? msgText : (['added','updated','deleted','success'].includes(msg)
+                    ? 'Berhasil!' : 'Terjadi kesalahan.' ) %>
+            </div>
+            <% } %>
+                <% if (typeof err !=='undefined' && err) { %>
+                    <div class="alert alert-danger" data-auto-dismiss>
+                        <i class="fas fa-exclamation-circle"></i>
+                        <%= err %>
+                    </div>
+                    <% } %>
+
+                        <div class="card">
+                            <div class="card-body-custom p-0">
+                                <div class="table-wrapper">
+                                    <table class="tbl">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Nama Perusahaan</th>
+                                                <th>Kode</th>
+                                                <th>Alamat</th>
+                                                <th>Status</th>
+                                                <th>Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% if (companies.length===0) { %>
+                                                <tr>
+                                                    <td colspan="6"
+                                                        style="text-align:center;padding:40px;color:var(--text-muted);">
+                                                        Belum
+                                                        ada data perusahaan</td>
+                                                </tr>
+                                                <% } %>
+                                                    <% companies.forEach((c, index)=> { %>
+                                                        <tr>
+                                                            <td style="color:var(--text-muted);font-size:0.8rem;">#<%=
+                                                                    index + 1 %>
+                                                            </td>
+                                                            <td><strong>
+                                                                    <%= c.company_name %>
+                                                                </strong></td>
+                                                            <td><code
+                                                                    style="background:var(--surface2);padding:2px 8px;border-radius:6px;"><%= c.company_code || '—' %></code>
+                                                            </td>
+                                                            <td
+                                                                style="max-width:200px;color:var(--text-muted);font-size:0.82rem;">
+                                                                <%= c.address || '—' %>
+                                                            </td>
+                                                            <td>
+                                                                <span
+                                                                    class="badge-status <%= c.is_active ? 'badge-approved' : 'badge-draft' %>">
+                                                                    <%= c.is_active ? 'Aktif' : 'Nonaktif' %>
+                                                                </span>
+                                                            </td>
+                                                            <td>
+                                                                <button class="btn btn-xs btn-primary"
+                                                                    onclick='openModal(<%- JSON.stringify(c) %>)'>
+                                                                    <i class="fas fa-edit"></i>
+                                                                </button>
+                                                                <button class="btn btn-xs btn-danger ms-1"
+                                                                    onclick="deleteCompany(<%= c.id %>, '<%= c.company_name %>')">
+                                                                    <i class="fas fa-trash"></i>
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                        <% }) %>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Modal -->
+                        <div class="modal fade" id="companyModal" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="modalTitle">Tambah Perusahaan</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <form id="companyForm" method="POST" action="/sda/companies/add">
+                                        <input type="hidden" name="_method" id="formMethod" value="POST">
+                                        <input type="hidden" name="id" id="companyId">
+                                        <div class="modal-body">
+                                            <div class="form-group">
+                                                <label class="form-label">Nama Perusahaan *</label>
+                                                <input type="text" class="form-control" name="company_name"
+                                                    id="companyName" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">Kode Perusahaan</label>
+                                                <input type="text" class="form-control" name="company_code"
+                                                    id="companyCode" placeholder="mis. PT-ABC" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">Alamat</label>
+                                                <textarea class="form-control" name="address" id="companyAddress"
+                                                    rows="3"></textarea>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">Status</label>
+                                                <select class="form-select" name="is_active" id="companyStatus">
+                                                    <option value="true">Aktif</option>
+                                                    <option value="false">Nonaktif</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary"
+                                                data-bs-dismiss="modal">Batal</button>
+                                            <button type="submit" class="btn btn-primary" id="submitBtn">Simpan</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <script>
+                            const modal = new bootstrap.Modal(document.getElementById('companyModal'));
+
+                            function openModal(data) {
+                                if (data) {
+                                    document.getElementById('modalTitle').textContent = 'Edit Perusahaan';
+                                    document.getElementById('companyId').value = data.id;
+                                    document.getElementById('companyName').value = data.company_name;
+                                    document.getElementById('companyCode').value = data.company_code || '';
+                                    document.getElementById('companyAddress').value = data.address || '';
+                                    document.getElementById('companyStatus').value = data.is_active ? 'true' : 'false';
+                                    document.getElementById('companyForm').action = '/sda/companies/edit/' + data.id;
+                                } else {
+                                    document.getElementById('modalTitle').textContent = 'Tambah Perusahaan';
+                                    document.getElementById('companyForm').reset();
+                                    document.getElementById('companyForm').action = '/sda/companies/add';
+                                }
+                                modal.show();
+                            }
+
+                            async function deleteCompany(id, name) {
+                                const result = await Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Hapus Perusahaan?',
+                                    text: `"${name}" akan dihapus. Data user & laporan terkait juga terdampak.`,
+                                    showCancelButton: true,
+                                    confirmButtonColor: '#ef4444',
+                                    cancelButtonColor: '#6b7280',
+                                    confirmButtonText: 'Ya, Hapus!',
+                                    cancelButtonText: 'Batal'
+                                });
+                                if (result.isConfirmed) {
+                                    const form = document.createElement('form');
+                                    form.method = 'POST';
+                                    form.action = '/sda/companies/delete/' + id;
+                                    document.body.appendChild(form);
+                                    form.submit();
+                                }
+                            }
+                        </script>
+
+                        <%- include('../partials/layout_foot') %>

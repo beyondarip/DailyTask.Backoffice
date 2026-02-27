@@ -1,0 +1,250 @@
+<% const role=user.role_name; const deptName=(user.department_name || '' ).toLowerCase(); const
+    isFinance=['sales','marketing','finance','purchasing'].includes(deptName); const isProduksi=deptName==='produksi' ;
+    const currentPath=typeof activePage !=='undefined' ? activePage : '' ; %>
+    <nav class="sidebar">
+        <a href="<%= user.isDirector ? '/director/dashboard' : (user.role_name === 'super_duper_admin' ? '/sda/dashboard' : (user.role_name === 'super_admin' ? '/sa/dashboard' : (user.role_name === 'admin_divisi' ? '/admin/dashboard' : '/dashboard'))) %>"
+            class="sidebar-logo text-decoration-none">
+            <img src="/images/favicon.png" alt="Logo" class="sidebar-logo-img">
+            <div class="logo-text">Daily Report System</div>
+            <div class="logo-sub">
+                <%= user.company_name || 'Global Access' %>
+            </div>
+        </a>
+
+        <div class="user-card">
+            <div class="d-flex align-items-center gap-2">
+                <div class="user-avatar">
+                    <%= user.full_name.charAt(0).toUpperCase() %>
+                </div>
+                <div>
+                    <div class="user-info-name">
+                        <%= user.full_name %>
+                    </div>
+                    <span class="role-badge role-<%= role %>">
+                        <%= role==='super_duper_admin' ? 'SDA' : role==='super_admin' ? 'SA' : role==='admin_divisi'
+                            ? 'Admin' : 'User' %>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar-nav">
+            <% if (user.isDirector) { %>
+                <div class="nav-section-title">Director Mode</div>
+                <div class="nav-item">
+                    <a class="nav-link <%= currentPath === 'director_dashboard' ? 'active' : '' %>"
+                        href="/director/dashboard">
+                        <i class="fas fa-crown nav-icon"></i> Executive Dashboard
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a class="nav-link <%= currentPath === 'director_employees' ? 'active' : '' %>"
+                        href="/director/employees">
+                        <i class="fas fa-user-tie nav-icon"></i> Data Eksekutif
+                    </a>
+                </div>
+
+                <div class="nav-item">
+                    <a class="nav-link <%= currentPath === 'director_new_report' ? 'active' : '' %>"
+                        href="/director/report/new">
+                        <i class="fas fa-pen-nib nav-icon"></i> Create Report
+                    </a>
+                </div>
+
+                <% if (role==='super_duper_admin' || role==='super_admin' ) { %>
+                    <div class="nav-item">
+                        <a class="nav-link <%= currentPath === 'activity_log' ? 'active' : '' %>"
+                            href="/director/activity_log">
+                            <i class="fas fa-history nav-icon"></i> Activity Log
+                        </a>
+                    </div>
+                    <% } %>
+
+                        <% if (role==='super_duper_admin' ) { %>
+                            <div class="nav-section-title">Director Admin</div>
+                            <div class="nav-item">
+                                <a class="nav-link <%= currentPath === 'director_users' ? 'active' : '' %>"
+                                    href="/director/users">
+                                    <i class="fas fa-user-shield nav-icon"></i> Manage Executives
+                                </a>
+                            </div>
+                            <div class="nav-item">
+                                <a class="nav-link <%= currentPath === 'director_positions' ? 'active' : '' %>"
+                                    href="/director/positions">
+                                    <i class="fas fa-briefcase nav-icon"></i> Manage Positions
+                                </a>
+                            </div>
+                            <% } %>
+                                <% } else { %>
+                                    <% if (role==='user' ) { %>
+                                        <div class="nav-section-title">Menu Utama</div>
+                                        <div class="nav-item">
+                                            <a class="nav-link <%= currentPath === 'dashboard' ? 'active' : '' %>"
+                                                href="/dashboard">
+                                                <i class="fas fa-home nav-icon"></i> Dashboard
+                                            </a>
+                                        </div>
+                                        <div class="nav-item">
+                                            <a class="nav-link <%= currentPath === 'new_report' ? 'active' : '' %>"
+                                                href="/report/new">
+                                                <i class="fas fa-plus-circle nav-icon"></i> Buat Laporan
+                                            </a>
+                                        </div>
+                                        <% } %>
+
+                                            <% if (role==='admin_divisi' ) { %>
+                                                <div class="nav-section-title">Admin Divisi</div>
+                                                <div class="nav-item">
+                                                    <a class="nav-link <%= currentPath === 'dashboard' ? 'active' : '' %>"
+                                                        href="/admin/dashboard">
+                                                        <i class="fas fa-tachometer-alt nav-icon"></i> Dashboard
+                                                        <% if (typeof notReported !=='undefined' && notReported.length>
+                                                            0) { %>
+                                                            <span class="nav-badge">
+                                                                <%= notReported.length %>
+                                                            </span>
+                                                            <% } %>
+                                                    </a>
+                                                </div>
+                                                <div class="nav-item">
+                                                    <a class="nav-link <%= currentPath === 'users' ? 'active' : '' %>"
+                                                        href="/admin/users">
+                                                        <i class="fas fa-users nav-icon"></i> User Divisi
+                                                    </a>
+                                                </div>
+                                                <% } %>
+
+                                                    <% if (role==='super_admin' ) { %>
+                                                        <div class="nav-section-title">Super Admin</div>
+                                                        <div class="nav-item">
+                                                            <a class="nav-link <%= currentPath === 'dashboard' ? 'active' : '' %>"
+                                                                href="/sa/dashboard">
+                                                                <i class="fas fa-chart-line nav-icon"></i> Dashboard
+                                                            </a>
+                                                        </div>
+                                                        <div class="nav-item">
+                                                            <a class="nav-link <%= currentPath === 'employees' ? 'active' : '' %>"
+                                                                href="/sa/employees">
+                                                                <i class="fas fa-users nav-icon"></i> Data Karyawan
+                                                            </a>
+                                                        </div>
+                                                        <div class="nav-item">
+                                                            <a class="nav-link <%= currentPath === 'activity_log' ? 'active' : '' %>"
+                                                                href="/sa/activity_log">
+                                                                <i class="fas fa-history nav-icon"></i> Activity Log
+                                                            </a>
+                                                        </div>
+                                                        <% } %>
+
+                                                            <% if (role==='super_duper_admin' ) { %>
+                                                                <div class="nav-section-title">Overview</div>
+                                                                <div class="nav-item">
+                                                                    <a class="nav-link <%= currentPath === 'dashboard' ? 'active' : '' %>"
+                                                                        href="/sda/dashboard">
+                                                                        <i class="fas fa-globe nav-icon"></i> Dashboard
+                                                                        Global
+                                                                    </a>
+                                                                </div>
+                                                                <div class="nav-item">
+                                                                    <a class="nav-link <%= currentPath === 'sda_employees' ? 'active' : '' %>"
+                                                                        href="/sda/employees">
+                                                                        <i class="fas fa-users nav-icon"></i> Data
+                                                                        Karyawan
+                                                                    </a>
+                                                                </div>
+                                                                <div class="nav-item">
+                                                                    <a class="nav-link <%= currentPath === 'activity_log' ? 'active' : '' %>"
+                                                                        href="/sda/activity_log">
+                                                                        <i class="fas fa-history nav-icon"></i> Activity
+                                                                        Log
+                                                                    </a>
+                                                                </div>
+                                                                <div class="nav-item">
+                                                                    <a class="nav-link <%= currentPath === 'urgent' ? 'active' : '' %>"
+                                                                        href="/sda/urgent"
+                                                                        style="<%= (currentPath !== 'urgent' && typeof urgentCount !== 'undefined' && urgentCount > 0) ? 'color: #ef4444;' : '' %>">
+                                                                        <% if (typeof urgentCount !=='undefined' &&
+                                                                            urgentCount> 0) { %>
+                                                                            <i class="fas fa-exclamation-triangle nav-icon"
+                                                                                style="color: #ef4444;"></i>
+                                                                            <% } else { %>
+                                                                                <i
+                                                                                    class="fas fa-certificate nav-icon"></i>
+                                                                                <% } %>
+                                                                                    Urgent
+                                                                                    <% if (typeof urgentCount
+                                                                                        !=='undefined' && urgentCount>
+                                                                                        0) { %>
+                                                                                        <span class="nav-badge"
+                                                                                            style="background:#ef4444;">
+                                                                                            <%= urgentCount %>
+                                                                                        </span>
+                                                                                        <% } %>
+                                                                    </a>
+                                                                </div>
+                                                                <div class="nav-section-title">Master Data</div>
+                                                                <div class="nav-item">
+                                                                    <a class="nav-link <%= currentPath === 'companies' ? 'active' : '' %>"
+                                                                        href="/sda/companies">
+                                                                        <i class="fas fa-building nav-icon"></i>
+                                                                        Perusahaan
+                                                                    </a>
+                                                                </div>
+                                                                <div class="nav-item">
+                                                                    <a class="nav-link <%= currentPath === 'departments' ? 'active' : '' %>"
+                                                                        href="/sda/departments">
+                                                                        <i class="fas fa-sitemap nav-icon"></i> Master
+                                                                        Divisi
+                                                                    </a>
+                                                                </div>
+                                                                <div class="nav-item">
+                                                                    <a class="nav-link <%= currentPath === 'users' ? 'active' : '' %>"
+                                                                        href="/sda/users">
+                                                                        <i class="fas fa-users-cog nav-icon"></i> Kelola
+                                                                        User
+                                                                    </a>
+                                                                </div>
+                                                                <div class="nav-item">
+                                                                    <a class="nav-link <%= currentPath === 'periods' ? 'active' : '' %>"
+                                                                        href="/sda/periods">
+                                                                        <i class="fas fa-calendar-alt nav-icon"></i>
+                                                                        Periode
+                                                                    </a>
+                                                                </div>
+                                                                <% } %>
+                                                                    <% } %>
+
+                                                                        <div class="nav-section-title">Tools</div>
+                                                                        <div class="nav-item">
+                                                                            <a class="nav-link"
+                                                                                href="<%= user.isDirector ? '/director/export/excel' : '/export/excel' %>">
+                                                                                <i
+                                                                                    class="fas fa-file-excel nav-icon"></i>
+                                                                                Export Excel
+                                                                            </a>
+                                                                        </div>
+                                                                        <div class="nav-item">
+                                                                            <a class="nav-link <%= currentPath === 'security' ? 'active' : '' %>"
+                                                                                href="/security">
+                                                                                <i
+                                                                                    class="fas fa-shield-alt nav-icon"></i>
+                                                                                Keamanan
+                                                                            </a>
+                                                                        </div>
+                                                                        <div class="nav-item">
+                                                                            <a class="nav-link"
+                                                                                href="<%= user.isDirector ? '/director/export/pdf' : '/export/pdf' %>">
+                                                                                <i class="fas fa-file-pdf nav-icon"></i>
+                                                                                Export PDF
+                                                                            </a>
+                                                                        </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <div class="nav-item">
+                <a class="nav-link" href="/logout">
+                    <i class="fas fa-sign-out-alt nav-icon"></i> Keluar
+                </a>
+            </div>
+        </div>
+    </nav>

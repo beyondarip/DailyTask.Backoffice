@@ -1,0 +1,295 @@
+<% const title='Executive Dashboard' ; const pageTitle='Executive Dashboard — ' + user.full_name; const
+    activePage='director_dashboard' ; %>
+    <%- include('../partials/layout_head') %>
+
+        <div class="page-header">
+            <div>
+                <h1><i class="fas fa-crown me-2 text-warning"></i>Director Dashboard</h1>
+                <p>Selamat datang kembali, <strong>
+                        <%= user.full_name %>
+                    </strong> | <span class="badge bg-purple" style="background:var(--primary);">
+                        Director Mode
+                    </span></p>
+            </div>
+            <a href="/director/report/new" class="btn btn-primary">
+                <i class="fas fa-plus-circle me-1"></i> Buat Laporan Direksi
+            </a>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon purple"><i class="fas fa-gem"></i></div>
+                    <div>
+                        <div class="stat-number">
+                            <%= reports.length %>
+                        </div>
+                        <div class="stat-label">Total Reports</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon green"><i class="fas fa-check-double"></i></div>
+                    <div>
+                        <div class="stat-number">
+                            <%= reports.filter(r=> r.status === 'approved').length %>
+                        </div>
+                        <div class="stat-label">Confirmed</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 text-end d-flex align-items-center justify-content-end">
+                <div class="alert alert-info py-2 px-3 mb-0"
+                    style="font-size:0.8rem; border-radius: 12px; background: rgba(99, 102, 241, 0.1);">
+                    <i class="fas fa-shield-alt me-2 text-primary"></i>
+                    <strong>Mode Eksklusif:</strong> Data ini hanya dapat diakses oleh jajaran direksi dan terpisah dari
+                    sistem operasional harian.
+                </div>
+            </div>
+        </div>
+
+        <!-- Notifikasi Belum Lapor -->
+        <% if (locals.notReported && notReported.length> 0) { %>
+            <div class="alert alert-warning d-flex align-items-center mb-4 shadow-sm border-0"
+                style="border-radius: 15px;">
+                <i class="fas fa-exclamation-triangle me-3 text-warning" style="font-size:1.8rem;"></i>
+                <div>
+                    <h6 class="alert-heading mb-1 fw-bold">Perhatian:</h6>
+                    <p class="mb-0">
+                        <%= notReported.length %> anggota tim belum mengirim laporan hari ini:
+                            <span class="fw-bold">
+                                <%= notReported.map(u=> u.full_name).join(', ') %>
+                            </span>
+                    </p>
+                </div>
+            </div>
+            <% } %>
+
+                <!-- Reports Table -->
+                <div class="card border-0 shadow-sm" style="border-radius: 20px;">
+                    <div class="card-header border-0 bg-transparent py-3">
+                        <h5 class="mb-0 fw-bold"><i class="fas fa-list-ul me-2 text-primary"></i>Executive Activity Log
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive" style="overflow: visible;">
+                            <table class="table table-hover align-middle mb-0" style="font-size: 0.9rem;">
+                                <thead class="bg-light text-muted">
+                                    <tr>
+                                        <th class="ps-4 border-0">#</th>
+                                        <th class="border-0">TANGGAL</th>
+                                        <% if (user.role_name==='super_duper_admin' ) { %>
+                                            <th class="border-0">EXECUTIVE</th>
+                                            <% } %>
+                                                <th class="border-0">LAPORAN KERJA HARIAN</th>
+                                                <th class="border-0">MASALAH</th>
+                                                <th class="border-0">SOLUSI</th>
+                                                <th class="border-0">ATTACHMENT</th>
+                                                <th class="border-0">STATUS</th>
+                                                <th class="border-0 pe-4">AKSI</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% if (reports.length===0) { %>
+                                        <tr>
+                                            <td colspan="9" class="text-center py-5 text-muted">
+                                                <div class="py-4">
+                                                    <i class="fas fa-folder-open mb-3"
+                                                        style="font-size: 3rem; opacity: 0.2;"></i>
+                                                    <p class="mb-0">Belum ada aktivitas yang tercatat dalam Director
+                                                        Mode.</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <% } else { %>
+                                            <% reports.forEach((r, index)=> { %>
+                                                <tr>
+                                                    <td class="ps-4 text-muted small fw-bold">#<%= index+1 %>
+                                                    </td>
+                                                    <td>
+                                                        <div class="fw-bold">
+                                                            <%= new Date(r.report_date).toLocaleDateString('id-ID', {
+                                                                day: '2-digit' , month: 'short' , year: 'numeric' }) %>
+                                                        </div>
+                                                        <div class="small text-muted">
+                                                            <%= r.report_time.substring(0,5) %>
+                                                        </div>
+                                                    </td>
+                                                    <% if (user.role_name==='super_duper_admin' ) { %>
+                                                        <td>
+                                                            <div class="fw-bold text-dark">
+                                                                <%= r.full_name %>
+                                                            </div>
+                                                            <div class="small text-muted">
+                                                                <%= r.position_name || 'Executive' %>
+                                                            </div>
+                                                        </td>
+                                                        <% } %>
+                                                            <td style="min-width: 250px;">
+                                                                <div class="fw-semibold text-dark text-truncate"
+                                                                    style="max-width: 300px;"
+                                                                    title="<%= r.task_description %>">
+                                                                    <%= r.task_description %>
+                                                                </div>
+                                                            </td>
+                                                            <td style="min-width: 150px;">
+                                                                <div class="text-danger small text-truncate"
+                                                                    style="max-width: 150px;" title="<%= r.issue %>">
+                                                                    <% if(r.issue) { %>
+                                                                        <i class="fas fa-exclamation-triangle me-1"></i>
+                                                                        <%= r.issue %>
+                                                                            <% } else { %>
+                                                                                <span
+                                                                                    class="text-muted opacity-50">—</span>
+                                                                                <% } %>
+                                                                </div>
+                                                            </td>
+                                                            <td style="min-width: 150px;">
+                                                                <div class="text-success small text-truncate"
+                                                                    style="max-width: 150px;" title="<%= r.solution %>">
+                                                                    <%= r.solution || '—' %>
+                                                                </div>
+                                                            </td>
+
+                                                            <td>
+                                                                <% if (r.attachment_path) { %>
+                                                                    <div class="position-relative border rounded overflow-hidden"
+                                                                        style="height: 50px; width: 50px; background: #f8fafc;">
+                                                                        <% if
+                                                                            (r.attachment_path.toLowerCase().endsWith('.pdf'))
+                                                                            { %>
+                                                                            <a href="/director/attachment/view/<%= r.attachment_path.split('/').pop() %>"
+                                                                                class="d-flex align-items-center justify-content-center h-100 text-danger text-decoration-none">
+                                                                                <i class="fas fa-file-pdf fa-lg"></i>
+                                                                            </a>
+                                                                            <% } else { %>
+                                                                                <a
+                                                                                    href="/director/attachment/view/<%= r.attachment_path.split('/').pop() %>">
+                                                                                    <img src="/director/attachment/<%= r.attachment_path.split('/').pop() %>"
+                                                                                        class="w-100 h-100"
+                                                                                        style="object-fit: cover;">
+                                                                                </a>
+                                                                                <% } %>
+                                                                    </div>
+                                                                    <% } else { %>
+                                                                        <span class="text-muted opacity-50">—</span>
+                                                                        <% } %>
+                                                            </td>
+                                                            <td>
+                                                                <span
+                                                                    class="badge rounded-pill <%= r.status === 'approved' ? 'bg-success-subtle text-success' : (r.status === 'submitted' ? 'bg-warning-subtle text-warning' : 'bg-secondary-subtle text-secondary') %> px-3 py-2">
+                                                                    <i
+                                                                        class="fas <%= r.status === 'approved' ? 'fa-check' : 'fa-clock' %> me-1"></i>
+                                                                    <%= r.status.toUpperCase() %>
+                                                                </span>
+                                                            </td>
+                                                            <td class="pe-4 text-center">
+                                                                <div class="dropdown">
+                                                                    <button type="button"
+                                                                        class="btn btn-sm btn-light border-0"
+                                                                        data-bs-toggle="dropdown"
+                                                                        data-bs-popper-config='{"strategy":"fixed"}'
+                                                                        style="border-radius: 8px; width: 32px; height: 32px;">
+                                                                        <i class="fas fa-ellipsis-v"></i>
+                                                                    </button>
+                                                                    <ul class="dropdown-menu shadow border-0"
+                                                                        style="border-radius: 12px; min-width: 180px; z-index: 9999;">
+                                                                        <li><a class="dropdown-item py-2"
+                                                                                href="/director/report/<%= r.id %>"><i
+                                                                                    class="fas fa-eye me-2 text-muted"></i>View
+                                                                                Detail</a></li>
+                                                                        <% if (r.status !=='approved' ) { %>
+                                                                            <li><a class="dropdown-item py-2"
+                                                                                    href="/director/report/edit/<%= r.id %>"><i
+                                                                                        class="fas fa-edit me-2 text-muted"></i>Edit
+                                                                                    Report</a></li>
+                                                                            <li>
+                                                                                <hr class="dropdown-divider opacity-50">
+                                                                            </li>
+                                                                            <li><button
+                                                                                    onclick="approveReport('<%= r.id %>')"
+                                                                                    class="dropdown-item py-2 text-success"><i
+                                                                                        class="fas fa-check-double me-2"></i>Finalize</button>
+                                                                            </li>
+                                                                            <% } %>
+                                                                                <li>
+                                                                                    <hr
+                                                                                        class="dropdown-divider opacity-50">
+                                                                                </li>
+                                                                                <li><button
+                                                                                        onclick="deleteReport('<%= r.id %>')"
+                                                                                        class="dropdown-item py-2 text-danger"><i
+                                                                                            class="fas fa-trash-alt me-2"></i>Delete
+                                                                                        Report</button>
+                                                                                </li>
+                                                                    </ul>
+                                                                </div>
+                                                            </td>
+                                                </tr>
+                                                <% }) %>
+                                                    <% } %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <script>
+                    async function approveReport(id) {
+                        const { isConfirmed } = await Swal.fire({
+                            title: 'Finalisasi Laporan?',
+                            text: "Laporan eksklusif ini akan dikunci dan dikonfirmasi.",
+                            icon: 'question',
+                            showCancelButton: true,
+                            confirmButtonText: 'Ya, Konfirmasi',
+                            confirmButtonColor: '#6366f1',
+                            cancelButtonText: 'Batal'
+                        });
+
+                        if (isConfirmed) {
+                            try {
+                                const res = await fetch('/director/report/approve/' + id, { method: 'POST' });
+                                const data = await res.json();
+                                if (data.success) {
+                                    Swal.fire({ icon: 'success', title: 'Berhasil', timer: 1000, showConfirmButton: false })
+                                        .then(() => window.location.reload());
+                                } else {
+                                    throw new Error(data.message);
+                                }
+                            } catch (err) {
+                                Swal.fire('Gagal', err.message, 'error');
+                            }
+                        }
+                    }
+
+                    async function deleteReport(id) {
+                        const { isConfirmed } = await Swal.fire({
+                            title: 'Hapus Laporan?',
+                            text: "Laporan ini akan dihapus secara permanen.",
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonText: 'Ya, Hapus',
+                            confirmButtonColor: '#ef4444',
+                            cancelButtonText: 'Batal'
+                        });
+
+                        if (isConfirmed) {
+                            try {
+                                const res = await fetch('/director/report/delete/' + id, { method: 'POST' });
+                                const data = await res.json();
+                                if (data.success) {
+                                    Swal.fire({ icon: 'success', title: 'Dihapus', timer: 1000, showConfirmButton: false })
+                                        .then(() => window.location.reload());
+                                } else {
+                                    throw new Error(data.message);
+                                }
+                            } catch (err) {
+                                Swal.fire('Gagal', err.message, 'error');
+                            }
+                        }
+                    }
+                </script>
+
+                <%- include('../partials/layout_foot') %>

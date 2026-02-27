@@ -1,0 +1,336 @@
+<% const title='Kelola User' ; const pageTitle='Kelola User Global' ; const activePage='users' ; %>
+    <%- include('../partials/layout_head') %>
+
+        <div class="page-header d-flex align-items-center justify-content-between">
+            <div>
+                <h1><i class="fas fa-users-cog me-2"></i>Kelola User</h1>
+                <p>Total: <%= users.length %> user</p>
+            </div>
+            <button class="btn btn-primary" onclick="openModal()">
+                <i class="fas fa-user-plus"></i> Tambah User
+            </button>
+        </div>
+
+        <% if (typeof msg !=='undefined' && msg) { %>
+            <div class="alert alert-<%= ['added','updated','deleted','success'].includes(msg) ? 'success' : 'danger' %>"
+                data-auto-dismiss>
+                <i
+                    class="fas fa-<%= ['added','updated','deleted','success'].includes(msg) ? 'check-circle' : 'exclamation-circle' %>"></i>
+                <%= typeof msgText !=='undefined' ? msgText : (['added','updated','deleted','success'].includes(msg)
+                    ? 'Berhasil!' : 'Terjadi kesalahan.' ) %>
+            </div>
+            <% } %>
+                <% if (typeof err !=='undefined' && err) { %>
+                    <div class="alert alert-danger" data-auto-dismiss>
+                        <i class="fas fa-exclamation-circle"></i>
+                        <%= err %>
+                    </div>
+                    <% } %>
+
+                        <!-- Filter -->
+                        <div class="card mb-4">
+                            <div class="card-body-custom">
+                                <form method="GET" class="row g-3">
+                                    <div class="col-md-3">
+                                        <label class="form-label">Perusahaan</label>
+                                        <select class="form-select" name="company_id" onchange="this.form.submit()">
+                                            <option value="">Semua PT</option>
+                                            <% companies.forEach(c=> { %>
+                                                <option value="<%= c.id %>" <%=filters.company_id==c.id?'selected':'' %>
+                                                    ><%= c.company_name %>
+                                                </option>
+                                                <% }) %>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Divisi</label>
+                                        <select class="form-select" name="dept_id" onchange="this.form.submit()">
+                                            <option value="">Semua Divisi</option>
+                                            <% departments.forEach(d=> { %>
+                                                <option value="<%= d.id %>" <%=filters.dept_id==d.id?'selected':'' %>>
+                                                    <%= d.department_name %>
+                                                </option>
+                                                <% }) %>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Cari Nama / Email</label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" name="search"
+                                                placeholder="Nama, email, atau jabatan..."
+                                                value="<%= typeof filters !== 'undefined' ? filters.search : '' %>"
+                                                oninput="clearTimeout(this.delay); this.delay = setTimeout(() => this.form.submit(), 500)">
+                                            <button class="btn btn-primary" type="submit"><i
+                                                    class="fas fa-search"></i></button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-body-custom p-0">
+                                <div class="table-wrapper">
+                                    <table class="tbl">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Nama</th>
+                                                <th>Email</th>
+                                                <th>Role</th>
+                                                <th>PT</th>
+                                                <th>Divisi</th>
+                                                <th>Status</th>
+                                                <th>Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% if (users.length===0) { %>
+                                                <tr>
+                                                    <td colspan="8"
+                                                        style="text-align:center;padding:40px;color:var(--text-muted);">
+                                                        Tidak
+                                                        ada user</td>
+                                                </tr>
+                                                <% } %>
+                                                    <% users.forEach((u, index)=> { %>
+                                                        <tr>
+                                                            <td style="color:var(--text-muted);font-size:0.8rem;">#<%=
+                                                                    index + 1 %>
+                                                            </td>
+                                                            <td>
+                                                                <div style="display:flex;align-items:center;gap:10px;">
+                                                                    <div
+                                                                        style="width:32px;height:32px;background:linear-gradient(135deg,#6366f1,#a855f7);border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:0.85rem;flex-shrink:0;">
+                                                                        <%= u.full_name.charAt(0) %>
+                                                                    </div>
+                                                                    <div>
+                                                                        <strong>
+                                                                            <%= u.full_name %>
+                                                                        </strong>
+                                                                        <small
+                                                                            style="display:block;color:var(--text-muted);">
+                                                                            <%= u.position || '' %>
+                                                                        </small>
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                            <td style="color:var(--text-muted);font-size:0.83rem;">
+                                                                <%= u.email %>
+                                                            </td>
+                                                            <td><span class="role-badge role-<%= u.role_name %>">
+                                                                    <%= u.role_name %>
+                                                                </span></td>
+                                                            <td style="font-size:0.82rem;">
+                                                                <%= u.company_name || '—' %>
+                                                            </td>
+                                                            <td style="font-size:0.82rem;">
+                                                                <%= u.department_name || '—' %>
+                                                            </td>
+                                                            <td>
+                                                                <span
+                                                                    class="badge-status <%= u.is_active ? 'badge-approved' : 'badge-draft' %>">
+                                                                    <%= u.is_active ? 'Aktif' : 'Nonaktif' %>
+                                                                </span>
+                                                            </td>
+                                                            <td>
+                                                                <button class="btn btn-xs btn-primary"
+                                                                    onclick='openModal(<%- JSON.stringify(u) %>)'><i
+                                                                        class="fas fa-edit"></i></button>
+                                                                <button class="btn btn-xs btn-danger ms-1"
+                                                                    onclick="deleteUser('<%= u.id %>', '<%= u.full_name %>')"><i
+                                                                        class="fas fa-trash"></i></button>
+                                                            </td>
+                                                        </tr>
+                                                        <% }) %>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Modal -->
+                        <div class="modal fade" id="userModal" tabindex="-1">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="modalTitle">Tambah User</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <form id="userForm" method="POST" action="/sda/users/add">
+                                        <input type="hidden" name="id" id="userId">
+                                        <div class="modal-body">
+                                            <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Nama Lengkap *</label>
+                                                        <input type="text" class="form-control" name="full_name"
+                                                            id="uFullName" required>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Email *</label>
+                                                        <input type="email" class="form-control" name="email"
+                                                            id="uEmail" required>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Password <span
+                                                                id="pwRequired">*</span></label>
+                                                        <input type="password" class="form-control" name="password"
+                                                            id="uPassword" autocomplete="new-password">
+                                                        <small id="pwHint"
+                                                            style="color:var(--text-muted);font-size:0.75rem;">Kosongkan
+                                                            jika
+                                                            tidak ingin mengubah password</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Role *</label>
+                                                        <select class="form-select" name="role_id" id="uRole" required
+                                                            onchange="toggleRoleFields()">
+                                                            <% roles.forEach(r=> { %>
+                                                                <option value="<%= r.id %>"
+                                                                    data-role="<%= r.role_name %>">
+                                                                    <%= r.role_name %>
+                                                                </option>
+                                                                <% }) %>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6" id="containerCompany">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Perusahaan</label>
+                                                        <select class="form-select" name="company_id" id="uCompany">
+                                                            <option value="">— Pilih PT —</option>
+                                                            <% companies.forEach(c=> { %>
+                                                                <option value="<%= c.id %>">
+                                                                    <%= c.company_name %>
+                                                                </option>
+                                                                <% }) %>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6" id="containerDept">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Divisi</label>
+                                                        <select class="form-select" name="department_id" id="uDept">
+                                                            <option value="">— Pilih Divisi —</option>
+                                                            <% departments.forEach(d=> { %>
+                                                                <option value="<%= d.id %>">
+                                                                    <%= d.department_name %>
+                                                                </option>
+                                                                <% }) %>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Jabatan</label>
+                                                        <input type="text" class="form-control" name="position"
+                                                            id="uPosition" placeholder="mis. Staff, Manager">
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label class="form-label">Status</label>
+                                                        <select class="form-select" name="is_active" id="uStatus">
+                                                            <option value="true">Aktif</option>
+                                                            <option value="false">Nonaktif</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary"
+                                                data-bs-dismiss="modal">Batal</button>
+                                            <button type="submit" class="btn btn-primary">Simpan</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <script>
+                            const modal = new bootstrap.Modal(document.getElementById('userModal'));
+                            const isEditMode = { value: false };
+
+                            function openModal(data) {
+                                if (data) {
+                                    isEditMode.value = true;
+                                    document.getElementById('modalTitle').textContent = 'Edit User';
+                                    document.getElementById('userId').value = data.id;
+                                    document.getElementById('uFullName').value = data.full_name;
+                                    document.getElementById('uEmail').value = data.email;
+                                    document.getElementById('uPassword').required = false;
+                                    document.getElementById('pwRequired').style.display = 'none';
+                                    document.getElementById('pwHint').style.display = 'block';
+                                    document.getElementById('uRole').value = data.role_id;
+                                    document.getElementById('uCompany').value = data.company_id || '';
+                                    document.getElementById('uDept').value = data.department_id || '';
+                                    document.getElementById('uPosition').value = data.position || '';
+                                    document.getElementById('uStatus').value = data.is_active ? 'true' : 'false';
+                                    document.getElementById('userForm').action = '/sda/users/edit/' + data.id;
+                                } else {
+                                    isEditMode.value = false;
+                                    document.getElementById('modalTitle').textContent = 'Tambah User';
+                                    document.getElementById('userForm').reset();
+                                    document.getElementById('uPassword').required = true;
+                                    document.getElementById('pwRequired').style.display = '';
+                                    document.getElementById('pwHint').style.display = 'none';
+                                    document.getElementById('userForm').action = '/sda/users/add';
+                                }
+                                setTimeout(() => {
+                                    toggleRoleFields();
+                                }, 50);
+                                modal.show();
+                            }
+
+                            function toggleRoleFields() {
+                                const roleSelect = document.getElementById('uRole');
+                                const selectedOption = roleSelect.options[roleSelect.selectedIndex];
+                                const roleName = selectedOption ? selectedOption.getAttribute('data-role') : '';
+
+                                const containerCompany = document.getElementById('containerCompany');
+                                const containerDept = document.getElementById('containerDept');
+
+                                if (roleName === 'super_duper_admin') {
+                                    containerCompany.style.display = 'none';
+                                    containerDept.style.display = 'none';
+                                    document.getElementById('uCompany').value = '';
+                                    document.getElementById('uDept').value = '';
+                                } else if (roleName === 'super_admin') {
+                                    containerCompany.style.display = 'block';
+                                    containerDept.style.display = 'none';
+                                    document.getElementById('uDept').value = '';
+                                } else {
+                                    containerCompany.style.display = 'block';
+                                    containerDept.style.display = 'block';
+                                }
+                            }
+
+                            async function deleteUser(id, name) {
+                                const result = await Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Hapus User Permanen?',
+                                    text: `Data user "${name}" akan dihapus SELAMANYA dari database. Aksi ini tidak bisa dibatalkan!`,
+                                    showCancelButton: true,
+                                    confirmButtonColor: '#ef4444',
+                                    confirmButtonText: 'Ya, Hapus Permanen!',
+                                    cancelButtonText: 'Batal'
+                                });
+                                if (result.isConfirmed) {
+                                    const form = document.createElement('form');
+                                    form.method = 'POST';
+                                    form.action = '/sda/users/delete/' + id;
+                                    document.body.appendChild(form);
+                                    form.submit();
+                                }
+                            }
+                        </script>
+
+                        <%- include('../partials/layout_foot') %>

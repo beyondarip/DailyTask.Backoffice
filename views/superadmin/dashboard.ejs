@@ -1,0 +1,351 @@
+<% const title='Dashboard Perusahaan' ; const pageTitle='Dashboard ' + user.company_name; const activePage='dashboard' ;
+    const totalReports=reports.length; const totalApproved=reports.filter(r=> r.status === 'approved').length;
+    const totalSubmitted = reports.filter(r => r.status === 'submitted').length;
+    %>
+    <%- include('../partials/layout_head') %>
+
+        <div class="page-header d-flex align-items-center justify-content-between mb-4">
+            <div>
+                <h1><i class="fas fa-building me-2"></i>Dashboard Perusahaan</h1>
+                <p class="mb-0 text-muted">
+                    <%= user.company_name %> | Data Real-time
+                </p>
+            </div>
+            <div class="date-display badge bg-light text-dark border px-3 py-2">
+                <i class="far fa-calendar-alt me-2"></i>
+                <%= new Date().toLocaleDateString('id-ID', {weekday:'long', day:'numeric', month:'long',
+                    year:'numeric'}) %>
+            </div>
+        </div>
+
+        <% const totalNominal=reports.reduce((acc, r)=> acc + (parseFloat(r.total_nominal) || 0), 0);
+            %>
+            <!-- Stats Global 1 PT -->
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-md">
+                    <div class="stat-card bg-primary bg-opacity-10 border-primary border-opacity-25">
+                        <div class="stat-icon bg-primary text-white"><i class="fas fa-users"></i></div>
+                        <div>
+                            <div class="stat-number text-primary">
+                                <%= reports.length> 0 ? new Set(reports.map(r => r.user_id)).size : 0 %>
+                            </div>
+                            <div class="stat-label">Staff Aktif</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md">
+                    <div class="stat-card">
+                        <div class="stat-icon blue"><i class="fas fa-file-invoice"></i></div>
+                        <div>
+                            <div class="stat-number">
+                                <%= totalReports %>
+                            </div>
+                            <div class="stat-label">Total Laporan</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md">
+                    <div class="stat-card">
+                        <div class="stat-icon green"><i class="fas fa-check-double"></i></div>
+                        <div>
+                            <div class="stat-number">
+                                <%= totalApproved %>
+                            </div>
+                            <div class="stat-label">Disetujui</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md">
+                    <div class="stat-card">
+                        <div class="stat-icon orange"><i class="fas fa-history"></i></div>
+                        <div>
+                            <div class="stat-number">
+                                <%= totalSubmitted %>
+                            </div>
+                            <div class="stat-label">Review</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md">
+                    <div class="stat-card border-success border-opacity-25" style="background: rgba(16,185,129,0.05);">
+                        <div class="stat-icon green"><i class="fas fa-money-bill-wave"></i></div>
+                        <div>
+                            <div class="stat-number" style="font-size: 1.1rem;">
+                                Rp <%= totalNominal.toLocaleString('id-ID') %>
+                            </div>
+                            <div class="stat-label">Total Nominal</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4 mb-4">
+                <!-- Chart Per Divisi -->
+                <div class="col-lg-8">
+                    <div class="card h-100 shadow-sm border-0">
+                        <div class="card-header bg-transparent border-0 pt-4 pb-0 px-4">
+                            <h5 class="mb-0 fw-bold"><i class="fas fa-chart-bar me-2 text-primary"></i>Statistik per
+                                Divisi
+                            </h5>
+                        </div>
+                        <div class="card-body px-4 pb-4">
+                            <div style="height: 300px; position: relative;">
+                                <canvas id="deptChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Doughnut Status -->
+                <div class="col-lg-4">
+                    <div class="card h-100 shadow-sm border-0">
+                        <div class="card-header bg-transparent border-0 pt-4 pb-0 px-4">
+                            <h5 class="mb-0 fw-bold"><i class="fas fa-chart-pie me-2 text-primary"></i>Status Laporan
+                            </h5>
+                        </div>
+                        <div class="card-body px-4 pb-4 d-flex align-items-center justify-content-center">
+                            <div style="height: 250px; width: 250px; position: relative;">
+                                <canvas id="statusChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter & List -->
+            <div class="card mb-4 border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <form method="GET" action="/sa/dashboard" class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label small text-uppercase fw-bold text-muted">Divisi</label>
+                            <select class="form-select" name="dept_id">
+                                <option value="">Semua Divisi</option>
+                                <% departments.forEach(d=> { %>
+                                    <option value="<%= d.id %>" <%=filters.dept_id==d.id?'selected':'' %>><%=
+                                            d.department_name %>
+                                    </option>
+                                    <% }) %>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small text-uppercase fw-bold text-muted">Status</label>
+                            <select class="form-select" name="status">
+                                <option value="">Semua Status</option>
+                                <option value="draft" <%=filters.status==='draft' ?'selected':'' %>>Draft</option>
+                                <option value="submitted" <%=filters.status==='submitted' ?'selected':'' %>>Submitted
+                                </option>
+                                <option value="approved" <%=filters.status==='approved' ?'selected':'' %>>Approved
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small text-uppercase fw-bold text-muted">Tanggal</label>
+                            <div class="input-group">
+                                <input type="date" class="form-control" name="date_from"
+                                    value="<%= filters.date_from || '' %>">
+                                <span class="input-group-text bg-light border-start-0 border-end-0">s/d</span>
+                                <input type="date" class="form-control" name="date_to"
+                                    value="<%= filters.date_to || '' %>">
+                            </div>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100 fw-bold"><i
+                                    class="fas fa-filter me-2"></i>Filter</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end mb-3 gap-2">
+                <a href="/export/excel" class="btn btn-success btn-sm"><i class="fas fa-file-excel me-1"></i> Excel</a>
+                <a href="/export/pdf" class="btn btn-danger btn-sm"><i class="fas fa-file-pdf me-1"></i> PDF</a>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-bottom py-3 px-4">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-list-alt me-2 text-primary"></i>Daftar Laporan</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4 py-3">#</th>
+                                    <th class="py-3">Tanggal</th>
+                                    <th class="py-3">Nama Staff</th>
+                                    <th class="py-3">Divisi</th>
+                                    <th class="py-3">Tugas</th>
+                                    <th class="py-3">Lampiran</th>
+                                    <th class="py-3">Status</th>
+                                    <th class="pe-4 py-3 text-end">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% if (reports.length===0) { %>
+                                    <tr>
+                                        <td colspan="8" class="text-center py-5 text-muted">Tidak ada data laporan yang
+                                            sesuai filter.</td>
+                                    </tr>
+                                    <% } %>
+                                        <% reports.forEach((r, index)=> { %>
+                                            <tr>
+                                                <td class="ps-4 text-muted small fw-bold">#<%= index+1 %>
+                                                </td>
+                                                <td class="text-nowrap">
+                                                    <%= new Date(r.report_date).toLocaleDateString('id-ID',
+                                                        {day:'2-digit', month:'short'}) %>
+                                                </td>
+                                                <td>
+                                                    <div class="fw-bold">
+                                                        <%= r.full_name %>
+                                                    </div>
+                                                    <div class="small text-muted">
+                                                        <%= r.position %>
+                                                    </div>
+                                                </td>
+                                                <td><span class="badge bg-light text-dark border">
+                                                        <%= r.department_name %>
+                                                    </span></td>
+                                                <td>
+                                                    <div class="text-truncate" style="max-width: 150px;"
+                                                        title="<%= r.task_description %>">
+                                                        <%= r.task_description %>
+                                                    </div>
+                                                </td>
+                                                <td style="text-align:center;">
+                                                    <% if (r.attachment_path) { %>
+                                                        <a href="/attachment/view/<%= r.attachment_path.split('/').pop() %>"
+                                                            class="text-primary" title="Lihat Lampiran">
+                                                            <i class="fas fa-paperclip"></i>
+                                                        </a>
+                                                        <% } else { %>
+                                                            <span class="text-muted small">—</span>
+                                                            <% } %>
+                                                </td>
+                                                <td><span class="badge-status badge-<%= r.status %>">
+                                                        <% if (r.status==='approved' ) { %> Approve
+                                                            <% } else if (r.status==='rejected' ) { %> Reject
+                                                                <% } else if (r.status==='submitted' ) { %> Proses
+                                                                    <% } else { %>
+                                                                        <%= r.status %>
+                                                                            <% } %>
+                                                    </span></td>
+                                                <td class="pe-4 text-end">
+                                                    <div class="d-flex gap-1 justify-content-end flex-wrap">
+                                                        <a href="/admin/report/<%= r.id %>"
+                                                            class="btn btn-sm btn-outline-primary"><i
+                                                                class="fas fa-eye"></i></a>
+                                                        <button onclick="askDirector('<%= r.id %>', this)"
+                                                            class="btn btn-sm <%= r.is_asked_director ? (r.director_solution ? 'btn-success' : 'btn-secondary') : 'btn-outline-danger' %>"
+                                                            title="<%= r.is_asked_director ? (r.director_solution ? 'Sudah Terjawab' : 'Sudah Ditanya') : 'Tanya Solusi ke Director' %>"
+                                                            <%=r.is_asked_director ? 'disabled' : '' %>>
+                                                            <i
+                                                                class="fas <%= r.is_asked_director ? (r.director_solution ? 'fa-check-double' : 'fa-hourglass-half') : 'fa-question-circle' %> me-1"></i>
+                                                            <%= r.is_asked_director ? (r.director_solution ? 'Terjawab'
+                                                                : 'Telah Ditanya' ) : 'Tanya Solusi' %>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Store for Charts -->
+            <% const deptLabels=[...new Set(reports.map(r=> r.department_name || 'Tanpa Divisi'))];
+                const deptApproved = deptLabels.map(d => reports.filter(r => (r.department_name || 'Tanpa Divisi') === d
+                && r.status === 'approved').length);
+                const deptSubmitted = deptLabels.map(d => reports.filter(r => (r.department_name || 'Tanpa Divisi') ===
+                d && r.status === 'submitted').length);
+                const deptDraft = deptLabels.map(d => reports.filter(r => (r.department_name || 'Tanpa Divisi') === d &&
+                r.status === 'draft').length);
+                %>
+                <div id="chartData" style="display:none;" data-dept-labels="<%= JSON.stringify(deptLabels) %>"
+                    data-dept-approved="<%= JSON.stringify(deptApproved) %>"
+                    data-dept-submitted="<%= JSON.stringify(deptSubmitted) %>"
+                    data-dept-draft="<%= JSON.stringify(deptDraft) %>"
+                    data-status-stats="<%= JSON.stringify([totalApproved, totalSubmitted, totalReports - totalApproved - totalSubmitted]) %>">
+                </div>
+
+                <script>
+                    const dataStore = document.getElementById('chartData');
+                    const deptLabels = JSON.parse(dataStore.dataset.deptLabels);
+                    const deptApproved = JSON.parse(dataStore.dataset.deptApproved);
+                    const deptSubmitted = JSON.parse(dataStore.dataset.deptSubmitted);
+                    const deptDraft = JSON.parse(dataStore.dataset.deptDraft);
+                    const statusStats = JSON.parse(dataStore.dataset.statusStats);
+
+                    const commonOptions = {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } } }
+                    };
+
+                    // Chart Per Divisi
+                    new Chart(document.getElementById('deptChart'), {
+                        type: 'bar',
+                        data: {
+                            labels: deptLabels,
+                            datasets: [
+                                { label: 'Approved', data: deptApproved, backgroundColor: '#10b981', borderRadius: 4 },
+                                { label: 'Submitted', data: deptSubmitted, backgroundColor: '#f59e0b', borderRadius: 4 },
+                                { label: 'Draft', data: deptDraft, backgroundColor: '#cbd5e1', borderRadius: 4 }
+                            ]
+                        },
+                        options: {
+                            ...commonOptions,
+                            scales: {
+                                x: { stacked: true, grid: { display: false } },
+                                y: { stacked: true, beginAtZero: true, grid: { borderDash: [2, 4] } }
+                            }
+                        }
+                    });
+
+                    // Chart Status Doughnut
+                    new Chart(document.getElementById('statusChart'), {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Approved', 'Submitted', 'Draft'],
+                            datasets: [{
+                                data: statusStats,
+                                backgroundColor: ['#10b981', '#f59e0b', '#cbd5e1'],
+                                borderWidth: 0,
+                                hoverOffset: 10
+                            }]
+                        },
+                        options: {
+                            ...commonOptions,
+                            cutout: '70%',
+                            plugins: {
+                                legend: { position: 'bottom' }
+                            }
+                        }
+                    });
+
+                    async function askDirector(reportId, btn) {
+                        const result = await Swal.fire({
+                            title: '🔴 Tanya Solusi ke Director?',
+                            html: '<p>Permintaan solusi akan dikirim ke <strong>Super Duper Admin</strong>.</p>',
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonText: 'Ya, Kirim!',
+                            confirmButtonColor: '#ef4444',
+                            cancelButtonText: 'Batal'
+                        });
+                        if (result.isConfirmed) {
+                            try {
+                                const res = await fetch('/report/ask-director/' + reportId, { method: 'POST' });
+                                const data = await res.json();
+                                if (data.success) {
+                                    Swal.fire({ icon: 'success', title: 'Terkirim!', text: 'Permintaan solusi berhasil dikirim.', timer: 1500, showConfirmButton: false })
+                                        .then(() => window.location.reload());
+                                } else { throw new Error(data.message); }
+                            } catch (err) { Swal.fire('Gagal', err.message, 'error'); }
+                        }
+                    }
+                </script>
+
+                <%- include('../partials/layout_foot') %>

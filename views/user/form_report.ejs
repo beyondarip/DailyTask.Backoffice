@@ -1,0 +1,392 @@
+<% const isEdit=typeof report !=='undefined' && report; const title=isEdit ? 'Edit Laporan' : 'Buat Laporan Baru' ;
+    const pageTitle=title; const activePage='new_report' ; const deptName=(user.department_name || '' ).toLowerCase();
+    const isFinance=['sales','marketing','finance','purchasing'].includes(deptName); const
+    isProduksi=deptName==='produksi' ; %>
+    <%- include('../partials/layout_head') %>
+
+        <div class="page-header">
+            <h1><i class="fas fa-<%= isEdit ? 'edit' : 'plus-circle' %> me-2"></i>
+                <%= title %>
+            </h1>
+            <p>Divisi: <strong>
+                    <%= user.department_name %>
+                </strong> | Perusahaan: <%= user.company_name %>
+            </p>
+        </div>
+
+        <% if (typeof error !=='undefined' && error) { %>
+            <div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i>
+                <%= error %>
+            </div>
+            <% } %>
+
+                <div class="row g-4">
+                    <div class="col-lg-8">
+                        <div class="card">
+                            <div class="card-header-custom">
+                                <h5><i class="fas fa-file-alt me-2"></i> Detail Laporan</h5>
+                            </div>
+                            <div class="card-body-custom">
+                                <form action="<%= isEdit ? '/report/edit/' + report.id : '/report/new' %>" method="POST"
+                                    enctype="multipart/form-data" id="reportForm">
+
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="form-label">Tanggal Laporan (Otomatis)</label>
+                                                <% const todayJakarta=new Intl.DateTimeFormat('en-CA', {
+                                                    timeZone: 'Asia/Jakarta' }).format(new Date()); const
+                                                    displayDate=isEdit && report.report_date ? new
+                                                    Date(report.report_date).toLocaleDateString('id-ID', {
+                                                    timeZone: 'Asia/Jakarta' , day: '2-digit' , month: 'long' ,
+                                                    year: 'numeric' }) : new Intl.DateTimeFormat('id-ID', {
+                                                    timeZone: 'Asia/Jakarta' , day: '2-digit' , month: 'long' ,
+                                                    year: 'numeric' }).format(new Date()); const isoDate=isEdit &&
+                                                    report.report_date ? new
+                                                    Date(report.report_date).toISOString().split('T')[0] : todayJakarta;
+                                                    %>
+                                                    <div class="form-control bg-light fw-bold"
+                                                        style="border-style: dashed; color: var(--primary);">
+                                                        <i class="fas fa-calendar-day me-2"></i>
+                                                        <%= displayDate %>
+                                                    </div>
+                                                    <input type="hidden" name="report_date" value="<%= isoDate %>">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="form-label">Jam (Otomatis)</label>
+                                                <% const timeStr=isEdit ? (report.report_time || '' ) : new
+                                                    Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Jakarta' ,
+                                                    hour: '2-digit' , minute: '2-digit' , hour12: false }).format(new
+                                                    Date()); %>
+                                                    <input type="time" class="form-control bg-light" name="report_time"
+                                                        value="<%= timeStr %>" readonly>
+                                                    <small class="text-muted" style="font-size: 0.7rem;">Waktu sistem
+                                                        Jakarta (WIB).</small>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Deskripsi Tugas / Pekerjaan Hari Ini *</label>
+                                        <textarea class="form-control" name="task_description" rows="4"
+                                            placeholder="Tuliskan kegiatan/pekerjaan yang dilakukan hari ini..."
+                                            required><%= isEdit ? (report.task_description || '') : '' %></textarea>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Kendala / Masalah</label>
+                                        <textarea class="form-control" name="issue" rows="3"
+                                            placeholder="Adakah kendala yang dihadapi? (kosongkan jika tidak ada)"><%= isEdit ? (report.issue || '') : '' %></textarea>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Solusi / Tindakan</label>
+                                        <textarea class="form-control" name="solution" rows="3"
+                                            placeholder="Solusi apa yang diambil?"><%= isEdit ? (report.solution || '') : '' %></textarea>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Hasil / Pencapaian</label>
+                                        <textarea class="form-control" name="result" rows="3"
+                                            placeholder="Apa hasil yang dicapai hari ini?"><%= isEdit ? (report.result || '') : '' %></textarea>
+                                    </div>
+
+                                    <!-- Finance Detail: hanya untuk Sales, Marketing, Finance, Purchasing -->
+                                    <% if (isFinance) { %>
+                                        <hr style="border-color:var(--border);margin:24px 0;">
+                                        <div class="d-flex align-items-center justify-content-between mb-3">
+                                            <h6 style="font-weight:700;color:var(--text);margin:0;">
+                                                <i class="fas fa-receipt me-2" style="color:var(--primary)"></i>Detail
+                                                Item / Transaksi
+                                            </h6>
+                                            <button type="button" class="btn btn-sm btn-secondary" onclick="addItem()">
+                                                <i class="fas fa-plus"></i> Tambah Item
+                                            </button>
+                                        </div>
+                                        <div id="itemsContainer">
+                                            <% const existItems=(isEdit && report.finance_items) ? report.finance_items
+                                                : []; %>
+                                                <% if (existItems.length> 0) { %>
+                                                    <% existItems.forEach((item, i)=> { %>
+                                                        <div class="item-row card mb-2 p-3"
+                                                            style="border:1px solid var(--border);">
+                                                            <div class="row g-2 align-items-end">
+                                                                <div class="col-md-4">
+                                                                    <label class="form-label"
+                                                                        style="font-size:0.78rem;">Nama Item</label>
+                                                                    <input type="text" class="form-control"
+                                                                        name="item_name" value="<%= item.item_name %>"
+                                                                        placeholder="Nama barang/jasa">
+                                                                </div>
+                                                                <div class="col-md-2">
+                                                                    <label class="form-label"
+                                                                        style="font-size:0.78rem;">Qty</label>
+                                                                    <input type="number" class="form-control" name="qty"
+                                                                        value="<%= item.qty %>" min="0" step="0.01"
+                                                                        onchange="calcTotal(this)">
+                                                                </div>
+                                                                <div class="col-md-3">
+                                                                    <label class="form-label"
+                                                                        style="font-size:0.78rem;">Harga Satuan</label>
+                                                                    <input type="number" class="form-control"
+                                                                        name="unit_price" value="<%= item.unit_price %>"
+                                                                        min="0" step="0.01" onchange="calcTotal(this)">
+                                                                </div>
+                                                                <div class="col-md-2">
+                                                                    <label class="form-label"
+                                                                        style="font-size:0.78rem;">Total</label>
+                                                                    <input type="text" class="form-control total-field"
+                                                                        readonly
+                                                                        value="<%= (parseFloat(item.qty||0)*parseFloat(item.unit_price||0)).toLocaleString('id-ID') %>">
+                                                                </div>
+                                                                <div class="col-md-1">
+                                                                    <button type="button"
+                                                                        class="btn btn-danger btn-sm w-100"
+                                                                        onclick="removeItem(this)"><i
+                                                                            class="fas fa-trash"></i></button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <% }) %>
+                                                            <% } else { %>
+                                                                <div id="noItemMsg"
+                                                                    style="color:var(--text-muted);font-size:0.85rem;padding:12px;text-align:center;">
+                                                                    Belum ada item. Klik "+ Tambah Item" untuk
+                                                                    menambahkan.
+                                                                </div>
+                                                                <% } %>
+                                        </div>
+                                        <% } %>
+
+                                            <!-- Untuk Produksi: hanya qty -->
+                                            <% if (isProduksi) { %>
+                                                <hr style="border-color:var(--border);margin:24px 0;">
+                                                <div class="form-group">
+                                                    <label class="form-label"><i class="fas fa-boxes me-2"
+                                                            style="color:var(--primary)"></i>Jumlah Output / Qty
+                                                        Produksi</label>
+                                                    <input type="number" class="form-control" name="qty" min="0"
+                                                        step="0.01" placeholder="Masukkan jumlah output">
+                                                </div>
+                                                <% } %>
+
+                                                    <% if (isEdit && report.manager_note) { %>
+                                                        <div class="alert alert-warning mb-4"
+                                                            style="border-left: 4px solid #f59e0b;">
+                                                            <div class="fw-bold mb-1"><i
+                                                                    class="fas fa-comment-dots me-1"></i> Catatan
+                                                                Manager:</div>
+                                                            <div class="small">
+                                                                <%= report.manager_note %>
+                                                            </div>
+                                                        </div>
+                                                        <% } %>
+
+                                                            <div class="form-group">
+                                                                <label class="form-label"><i
+                                                                        class="fas fa-paperclip me-2"></i>Lampiran
+                                                                    (PDF/JPG/PNG, bisa pilih banyak)</label>
+
+                                                                <% if (isEdit && typeof attachments !=='undefined' &&
+                                                                    attachments.length> 0) { %>
+                                                                    <div class="row g-2 mb-3">
+                                                                        <div class="col-12"><small
+                                                                                class="text-muted">File Terpilih Saat
+                                                                                Ini:</small></div>
+                                                                        <% attachments.forEach(att=> { %>
+                                                                            <div class="col-4 col-md-3">
+                                                                                <div class="position-relative border rounded overflow-hidden"
+                                                                                    style="height: 80px; background: #f8fafc;">
+                                                                                    <% if
+                                                                                        (att.attachment_path.toLowerCase().endsWith('.pdf'))
+                                                                                        { %>
+                                                                                        <div
+                                                                                            class="d-flex align-items-center justify-content-center h-100 text-danger">
+                                                                                            <i
+                                                                                                class="fas fa-file-pdf fa-2x"></i>
+                                                                                        </div>
+                                                                                        <% } else { %>
+                                                                                            <img src="<%= att.attachment_path %>"
+                                                                                                class="w-100 h-100"
+                                                                                                style="object-fit: cover;">
+                                                                                            <% } %>
+                                                                                </div>
+                                                                            </div>
+                                                                            <% }) %>
+                                                                    </div>
+                                                                    <div class="alert alert-info py-2"
+                                                                        style="font-size: 0.75rem;">
+                                                                        <i class="fas fa-info-circle me-1"></i>
+                                                                        Mengupload file baru akan menghapus lampiran
+                                                                        sebelumnya (jika ada file baru yang dipilih).
+                                                                    </div>
+                                                                    <% } else if (isEdit && report.attachment_path) { %>
+                                                                        <div class="mb-3">
+                                                                            <small class="text-muted d-block mb-2">File
+                                                                                Terpilih Saat Ini:</small>
+                                                                            <div class="border rounded p-2 d-inline-block"
+                                                                                style="background: #f8fafc;">
+                                                                                <a href="/attachment/view/<%= report.attachment_path.split('/').pop() %>"
+                                                                                    target="_blank"
+                                                                                    class="text-primary small text-decoration-none">
+                                                                                    <i class="fas fa-file-alt me-1"></i>
+                                                                                    Lihat Lampiran
+                                                                                </a>
+                                                                            </div>
+                                                                        </div>
+                                                                        <% } %>
+
+                                                                            <input type="file" class="form-control"
+                                                                                name="attachments"
+                                                                                accept=".pdf,.jpg,.jpeg,.png" multiple>
+                                                                            <small class="text-muted d-block mt-1"
+                                                                                style="font-size: 0.7rem;">
+                                                                                Bisa upload lebih dari satu file
+                                                                                sekaligus.
+                                                                            </small>
+                                                            </div>
+
+                                                            <div class="card bg-light border-0 mb-4 mt-4">
+                                                                <div class="card-body">
+                                                                    <div class="form-label mb-3 fw-bold"><i
+                                                                            class="fas fa-tasks me-2"></i>Status Laporan
+                                                                    </div>
+                                                                    <div class="d-flex gap-4">
+                                                                        <div class="form-check">
+                                                                            <input class="form-check-input" type="radio"
+                                                                                name="status_action" id="statusDraft"
+                                                                                value="draft" <%=(isEdit &&
+                                                                                report.status==='draft' ) || !isEdit
+                                                                                ? 'checked' : '' %>>
+                                                                            <label class="form-check-label"
+                                                                                for="statusDraft">
+                                                                                Draft <small class="text-muted d-block"
+                                                                                    style="font-size: 0.65rem;">Simpan
+                                                                                    untuk nanti</small>
+                                                                            </label>
+                                                                        </div>
+                                                                        <div class="form-check">
+                                                                            <input class="form-check-input" type="radio"
+                                                                                name="status_action" id="statusSubmit"
+                                                                                value="submit" <%=isEdit &&
+                                                                                (report.status==='submitted' ||
+                                                                                report.status==='proses' ) ? 'checked'
+                                                                                : '' %>>
+                                                                            <label class="form-check-label"
+                                                                                for="statusSubmit">
+                                                                                Submit <small class="text-muted d-block"
+                                                                                    style="font-size: 0.65rem;">Kirim ke
+                                                                                    manager</small>
+                                                                            </label>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="d-flex gap-2 mt-4">
+                                                                <button type="submit" class="btn btn-primary px-4">
+                                                                    <i class="fas fa-save me-1"></i> Simpan Laporan
+                                                                </button>
+                                                                <a href="/dashboard"
+                                                                    class="btn btn-outline-secondary">Batal</a>
+                                                            </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Info Panel Kanan -->
+                    <div class="col-lg-4">
+                        <div class="card mb-3">
+                            <div class="card-header-custom">
+                                <h5><i class="fas fa-info-circle me-2"></i>Panduan</h5>
+                            </div>
+                            <div class="card-body-custom">
+                                <ul style="font-size:0.83rem;color:var(--text-muted);padding-left:18px;line-height:2;">
+                                    <li>Isi semua field wajib (*)</li>
+                                    <li>Status <strong>Draft</strong>: masih bisa diedit</li>
+                                    <li>Status <strong>Submit</strong>: menunggu review manager</li>
+                                    <li>Laporan yang sudah <strong>Approved</strong> tidak bisa diubah</li>
+                                    <% if (isFinance) { %>
+                                        <li style="color:var(--primary);">Tambahkan detail item transaksi di bawah</li>
+                                        <% } %>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header-custom">
+                                <h5><i class="fas fa-user me-2"></i>Info Akun</h5>
+                            </div>
+                            <div class="card-body-custom">
+                                <div style="font-size:0.85rem;line-height:2.2;color:var(--text-muted);">
+                                    <div><strong style="color:var(--text);">Nama:</strong>
+                                        <%= user.full_name %>
+                                    </div>
+                                    <div><strong style="color:var(--text);">Jabatan:</strong>
+                                        <%= user.position %>
+                                    </div>
+                                    <div><strong style="color:var(--text);">Divisi:</strong>
+                                        <%= user.department_name %>
+                                    </div>
+                                    <div><strong style="color:var(--text);">Perusahaan:</strong>
+                                        <%= user.company_name %>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <% if (isFinance) { %>
+                    <script>
+                        function addItem() {
+                            document.getElementById('noItemMsg')?.remove();
+                            const container = document.getElementById('itemsContainer');
+                            const div = document.createElement('div');
+                            div.className = 'item-row card mb-2 p-3';
+                            div.style.border = '1px solid var(--border)';
+                            div.innerHTML = `
+        <div class="row g-2 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label" style="font-size:0.78rem;">Nama Item</label>
+                <input type="text" class="form-control" name="item_name" placeholder="Nama barang/jasa">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label" style="font-size:0.78rem;">Qty</label>
+                <input type="number" class="form-control" name="qty" min="0" step="0.01" onchange="calcTotal(this)">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label" style="font-size:0.78rem;">Harga Satuan (Rp)</label>
+                <input type="number" class="form-control" name="unit_price" min="0" step="0.01" onchange="calcTotal(this)">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label" style="font-size:0.78rem;">Total</label>
+                <input type="text" class="form-control total-field" readonly placeholder="0">
+            </div>
+            <div class="col-md-1">
+                <button type="button" class="btn btn-danger btn-sm w-100" onclick="removeItem(this)"><i class="fas fa-trash"></i></button>
+            </div>
+        </div>
+    `;
+                            container.appendChild(div);
+                        }
+
+                        function removeItem(btn) {
+                            btn.closest('.item-row').remove();
+                        }
+
+                        function calcTotal(input) {
+                            const row = input.closest('.item-row');
+                            const qty = parseFloat(row.querySelector('[name="qty"]')?.value) || 0;
+                            const price = parseFloat(row.querySelector('[name="unit_price"]')?.value) || 0;
+                            const total = qty * price;
+                            const totalField = row.querySelector('.total-field');
+                            if (totalField) totalField.value = 'Rp ' + total.toLocaleString('id-ID');
+                        }
+                    </script>
+                    <% } %>
+
+                        <%- include('../partials/layout_foot') %>

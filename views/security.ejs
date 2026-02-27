@@ -1,0 +1,177 @@
+<% const title='Security Settings' ; const pageTitle='Keamanan Akun' ; const activePage='security' ; %>
+    <%- include('partials/layout_head') %>
+
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                <div class="page-header d-flex align-items-center mb-4">
+                    <i class="fas fa-user-shield me-3 text-primary" style="font-size: 2rem;"></i>
+                    <div>
+                        <h1 class="mb-0">Keamanan Akun</h1>
+                        <p class="text-muted">Kelola proteksi akun Anda dan Multi-Factor Authentication.</p>
+                    </div>
+                </div>
+
+                <% if (msg==='mfa_enabled' ) { %>
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="fas fa-check-circle me-2"></i> Multi-Factor Authentication (MFA) berhasil diaktifkan.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    <% } %>
+                        <% if (msg==='mfa_disabled' ) { %>
+                            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                                <i class="fas fa-exclamation-triangle me-2"></i> MFA telah dinonaktifkan. Akun Anda
+                                sekarang kurang aman.
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                            <% } %>
+                                <% if (err) { %>
+                                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                        <i class="fas fa-times-circle me-2"></i>
+                                        <%= err %>
+                                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                    </div>
+                                    <% } %>
+
+                                        <!-- MFA Card -->
+                                        <div class="card shadow-sm border-0 mb-4"
+                                            style="border-radius: 16px; overflow: hidden;">
+                                            <div class="card-header bg-white py-3 px-4 border-bottom">
+                                                <h5 class="mb-0 fw-bold">Multi-Factor Authentication (MFA)</h5>
+                                            </div>
+                                            <div class="card-body p-4">
+                                                <div class="d-flex align-items-start gap-4">
+                                                    <div
+                                                        class="mfa-status-icon shadow-sm <%= mfaEnabled ? 'active' : 'inactive' %>">
+                                                        <i class="fas <%= mfaEnabled ? 'fa-lock' : 'fa-unlock' %>"></i>
+                                                    </div>
+                                                    <div class="flex-grow-1">
+                                                        <h6>Status Authenticator:
+                                                            <span
+                                                                class="badge <%= mfaEnabled ? 'bg-success' : 'bg-secondary' %> px-2 py-1 ms-1">
+                                                                <%= mfaEnabled ? 'AKTIF' : 'NON-AKTIF' %>
+                                                            </span>
+                                                        </h6>
+                                                        <p class="text-muted small mb-4">
+                                                            MFA menambahkan lapisan keamanan ekstra dengan mewajibkan
+                                                            kode verifikasi 6-digit dari aplikasi authenticator (seperti
+                                                            Google Authenticator) setiap kali Anda login.
+                                                        </p>
+
+                                                        <% if (!mfaEnabled) { %>
+                                                            <a href="/security/mfa/setup"
+                                                                class="btn btn-primary px-4 py-2"
+                                                                style="border-radius: 10px;">
+                                                                <i class="fas fa-shield-alt me-2"></i> Aktifkan MFA
+                                                                Sekarang
+                                                            </a>
+                                                            <% } else { %>
+                                                                <button class="btn btn-outline-danger px-4 py-2"
+                                                                    style="border-radius: 10px;"
+                                                                    onclick="confirmDisableMfa()">
+                                                                    <i class="fas fa-ban me-2"></i> Nonaktifkan MFA
+                                                                </button>
+                                                                <% } %>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Defender Info Card -->
+                                        <div class="card shadow-sm border-0"
+                                            style="border-radius: 16px; background: linear-gradient(135deg, #1e293b, #0f172a); color: white;">
+                                            <div class="card-body p-4">
+                                                <div class="d-flex align-items-center gap-3 mb-3">
+                                                    <i class="fas fa-user-secret text-info fs-4"></i>
+                                                    <h5 class="mb-0 fw-bold">Protection Defender Aktif</h5>
+                                                </div>
+                                                <div class="row g-3">
+                                                    <div class="col-md-6">
+                                                        <div class="p-3 bg-white bg-opacity-10 rounded-4">
+                                                            <i class="fas fa-shield-virus text-info mb-2"></i>
+                                                            <div class="small fw-bold">HTTP Security</div>
+                                                            <div class="text-white-50 tiny">Helmet headers dipasang
+                                                                untuk mencegah XSS & injection.</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="p-3 bg-white bg-opacity-10 rounded-4">
+                                                            <i class="fas fa-clock-rotate-left text-info mb-2"></i>
+                                                            <div class="small fw-bold">7-Day Persistency</div>
+                                                            <div class="text-white-50 tiny">Sesi MFA aman Anda akan
+                                                                bertahan selama 7 hari ke depan.</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+            </div>
+        </div>
+
+        <form id="disableMfaForm" action="/security/mfa/disable" method="POST" style="display:none;">
+            <input type="hidden" name="token" id="disableToken">
+        </form>
+
+        <script>
+            function confirmDisableMfa() {
+                Swal.fire({
+                    title: 'Nonaktifkan MFA?',
+                    html: `
+                <p class="text-muted small">Masukkan kode 6-digit dari aplikasi authenticator Anda untuk konfirmasi.</p>
+                <input id="swal-token" type="text" maxlength="6" inputmode="numeric"
+                    class="swal2-input" placeholder="000000"
+                    style="letter-spacing:8px; text-align:center; font-size:1.4rem; font-weight:700;">
+            `,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#64748b',
+                    confirmButtonText: 'Nonaktifkan',
+                    cancelButtonText: 'Batal',
+                    didOpen: () => {
+                        document.getElementById('swal-token').focus();
+                    },
+                    preConfirm: () => {
+                        const token = document.getElementById('swal-token').value.trim();
+                        if (!token || token.length !== 6 || !/^\d{6}$/.test(token)) {
+                            Swal.showValidationMessage('Masukkan kode 6 digit yang valid!');
+                            return false;
+                        }
+                        return token;
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        document.getElementById('disableToken').value = result.value;
+                        document.getElementById('disableMfaForm').submit();
+                    }
+                });
+            }
+        </script>
+
+        <style>
+            .mfa-status-icon {
+                width: 60px;
+                height: 60px;
+                border-radius: 18px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.5rem;
+                flex-shrink: 0;
+            }
+
+            .mfa-status-icon.active {
+                background: rgba(16, 185, 129, 0.1);
+                color: #10b981;
+            }
+
+            .mfa-status-icon.inactive {
+                background: rgba(100, 116, 139, 0.1);
+                color: #64748b;
+            }
+
+            .tiny {
+                font-size: 0.75rem;
+            }
+        </style>
+
+        <%- include('partials/layout_foot') %>

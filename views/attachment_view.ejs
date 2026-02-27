@@ -1,0 +1,168 @@
+<% const title='Gallery Lampiran' ; const pageTitle='Preview Lampiran — ' + filename; const activePage='dashboard' ;
+    const isCurrentPdf=filename.toLowerCase().endsWith('.pdf'); %>
+    <%- include('./partials/layout_head') %>
+
+        <div class="gallery-container">
+            <!-- Sidebar: All Attachments -->
+            <div class="gallery-sidebar">
+                <div class="p-3 border-bottom d-flex align-items-center justify-content-between bg-white">
+                    <h6 class="mb-0 fw-bold"><i class="fas fa-images me-2 text-primary"></i>Semua Lampiran</h6>
+                    <span class="badge bg-light text-dark rounded-pill">
+                        <%= attachments.length %>
+                    </span>
+                </div>
+                <div class="list-group list-group-flush gallery-list">
+                    <% attachments.forEach((att, idx)=> {
+                        if (att.attachment_path) {
+                        const attName = att.attachment_path.split('/').pop();
+                        const isActive = attName === filename;
+                        const isPdf = attName.toLowerCase().endsWith('.pdf');
+                        %>
+                        <a href="/attachment/view/<%= attName %>"
+                            class="list-group-item list-group-item-action d-flex align-items-center p-3 shadow-none border-0 mb-1 <%= isActive ? 'active-item' : '' %>"
+                            style="border-radius: 8px; transition: all 0.2s;">
+                            <div class="flex-shrink-0 me-3">
+                                <div class="thumbnail-preview border rounded overflow-hidden"
+                                    style="width: 50px; height: 50px; background: #f1f5f9;">
+                                    <% if (isPdf) { %>
+                                        <div class="d-flex align-items-center justify-content-center h-100 text-danger">
+                                            <i class="fas fa-file-pdf fa-lg"></i>
+                                        </div>
+                                        <% } else { %>
+                                            <img src="<%= att.attachment_path %>" class="w-100 h-100"
+                                                style="object-fit: cover;">
+                                            <% } %>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 overflow-hidden">
+                                <div
+                                    class="small fw-bold text-truncate mb-0 <%= isActive ? 'text-primary' : 'text-dark' %>">
+                                    File <%= idx + 1 %>
+                                </div>
+                                <div class="text-muted" style="font-size: 0.65rem; text-transform: uppercase;">
+                                    <%= isPdf ? 'PDF Document' : 'Image File' %>
+                                </div>
+                            </div>
+                            <% if (isActive) { %>
+                                <i class="fas fa-chevron-right text-primary ms-2 small"></i>
+                                <% } %>
+                        </a>
+                        <% } }) %>
+                </div>
+
+                <div class="mt-auto p-3 border-top bg-white">
+                    <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm w-100 mb-2">
+                        <i class="fas fa-arrow-left me-1"></i> Kembali
+                    </a>
+                    <% if (reportId) { %>
+                        <a href="/report/<%= reportId %>" class="btn btn-outline-primary btn-sm w-100">
+                            Detail Laporan
+                        </a>
+                        <% } %>
+                </div>
+            </div>
+
+            <!-- Main Preview Area -->
+            <div class="gallery-main">
+                <div
+                    class="gallery-header px-4 py-2 border-bottom bg-white d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="mb-0 fw-bold">
+                            <%= filename %>
+                        </h6>
+                        <small class="text-muted">
+                            <%= isCurrentPdf ? 'PDF Document' : 'Image View' %>
+                        </small>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="/attachment/<%= filename %>" class="btn btn-sm btn-primary px-3 shadow-sm" download>
+                            <i class="fas fa-download me-1"></i> Unduh
+                        </a>
+                    </div>
+                </div>
+
+                <div class="gallery-display p-4">
+                    <div class="preview-card shadow-sm border rounded overflow-hidden bg-white">
+                        <% if (isCurrentPdf) { %>
+                            <iframe src="/attachment/<%= filename %>"
+                                style="width:100%; height:75vh; border:none;"></iframe>
+                            <% } else { %>
+                                <div class="text-center p-2">
+                                    <img src="/uploads/<%= filename %>" class="img-fluid rounded"
+                                        style="max-height: 75vh; object-fit: contain;">
+                                </div>
+                                <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <style>
+            .gallery-container {
+                display: flex;
+                height: calc(100vh - 100px);
+                background: #f8fafc;
+                margin: -24px;
+                border-radius: 0;
+            }
+
+            .gallery-sidebar {
+                width: 320px;
+                background: #fff;
+                border-right: 1px solid #e2e8f0;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+            }
+
+            .gallery-list {
+                overflow-y: auto;
+                padding: 12px;
+            }
+
+            .active-item {
+                background-color: #f0f7ff !important;
+                border: 1px solid #bfdbfe !important;
+            }
+
+            .gallery-main {
+                flex-grow: 1;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+            }
+
+            .gallery-display {
+                flex-grow: 1;
+                overflow-y: auto;
+                background: #f1f5f9;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+
+            .preview-card {
+                width: 100%;
+                max-width: 1200px;
+            }
+
+            .hover-lift:hover {
+                transform: translateY(-2px);
+            }
+
+            @media (max-width: 992px) {
+                .gallery-container {
+                    flex-direction: column-reverse;
+                    height: auto;
+                }
+
+                .gallery-sidebar {
+                    width: 100%;
+                    border-right: none;
+                    border-top: 1px solid #e2e8f0;
+                    height: 300px;
+                }
+            }
+        </style>
+
+        <%- include('./partials/layout_foot') %>

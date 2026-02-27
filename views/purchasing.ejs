@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purchasing - <%= user.company %>
+    </title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&display=swap');
+
+        body {
+            background: #fdfdfd;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            min-height: 100vh;
+            margin: 0;
+            caret-color: transparent;
+        }
+
+        .main-content {
+            animation: fadeInPage 0.5s ease-out forwards;
+            opacity: 0;
+        }
+
+        @keyframes fadeInPage {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        <% var brandColor='#007AFF';
+        var companyName=(user && user.company) ? user.company : "";
+        var userPos=(user && user.position) ? user.position : "";
+        var compUpper=companyName.toUpperCase();
+        if (compUpper.includes('WONG HANG')) brandColor='#FF0000';
+        else if (compUpper.includes('AKARSA GARMENT')) brandColor='#A50000';
+        else if (compUpper.includes('BITREN')) brandColor='#28a745';
+        else if (compUpper.includes('ALAS KAKI')) brandColor='#0056b3';
+        else if (compUpper.includes('AKSA DIGITEX')) brandColor='#ffc107';
+        else if (compUpper.includes('ALFA DINAMIS')) brandColor='#17a2b8';
+        else if (compUpper.includes('DELTA SINERGI')) brandColor='#343a40';
+
+        %> :root {
+            --main: <%=brandColor %>;
+        }
+
+        .glass {
+            background: #fff;
+            border-radius: 25px;
+            border: 1px solid #eee;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.02);
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .header {
+            padding: 30px;
+            border-top: 8px solid var(--main);
+        }
+
+        .table thead th {
+            background: #fafafa !important;
+            text-align: center;
+            vertical-align: middle;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            border: 1px solid #eee;
+            color: #666;
+        }
+
+        .table tbody td {
+            vertical-align: middle;
+            padding: 12px !important;
+            border-bottom: 1px solid #f8f9fa;
+        }
+
+        .bg-pending {
+            background: #fffbe6;
+            color: #d48806;
+        }
+
+        .bg-approved {
+            background: #e6fff1;
+            color: #1e8e3e;
+        }
+
+        .bg-rejected {
+            background: #fff1f0;
+            color: #cf1322;
+        }
+
+        /* Custom Premium Dropdown */
+        .dropdown-menu {
+            border-radius: 20px !important;
+            padding: 12px !important;
+            min-width: 250px !important;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15) !important;
+            border: 1px solid rgba(0, 0, 0, 0.05) !important;
+            margin-top: 10px !important;
+            z-index: 10000 !important;
+            animation: dropdownScale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes dropdownScale {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .dropdown-item {
+            border-radius: 12px !important;
+            padding: 12px 18px !important;
+            font-weight: 700 !important;
+            font-size: 0.85rem !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 15px !important;
+            transition: all 0.2s ease !important;
+            color: #555 !important;
+            margin-bottom: 4px !important;
+        }
+
+        .dropdown-item i {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8f9fa;
+            border-radius: 10px;
+            font-size: 1rem;
+            color: #666;
+            transition: all 0.2s ease;
+        }
+
+        .dropdown-item:hover {
+            background: #f8f9fa !important;
+            color: var(--main) !important;
+            transform: translateX(5px);
+        }
+
+        .dropdown-item:hover i {
+            background: var(--main);
+            color: #fff;
+        }
+
+        .dropdown-item.active {
+            background: var(--main) !important;
+            color: #fff !important;
+        }
+
+        .dropdown-item.active i {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+
+        .dropdown-divider {
+            margin: 10px 0 !important;
+            opacity: 0.1 !important;
+        }
+
+        .btn-main {
+            background: var(--main);
+            color: <%=(brandColor=='#ffc107') ? '#000': '#fff' %>;
+            border: none;
+        }
+
+        .btn-file-link {
+            background: #fffbe6;
+            border: 1px solid #ffe58f;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #d48806;
+            text-decoration: none;
+            display: inline-block;
+            transition: 0.2s;
+        }
+
+        .status-badge {
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: space-between;
+            min-width: 110px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .status-badge:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-menu-portal {
+            position: fixed;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            border: 1px solid #eee;
+            padding: 8px;
+            z-index: 9999;
+            min-width: 150px;
+            animation: scaleIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            transform-origin: top center;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .status-menu-item {
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #636e72;
+        }
+
+        .status-menu-item:hover {
+            background: #f8f9fa;
+            color: var(--main);
+            transform: translateX(4px);
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8) translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid p-4 main-content">
+        <div class="glass header d-flex justify-content-between align-items-center">
+            <div>
+                <span class="badge bg-dark mb-1">
+                    <%= companyName %>
+                </span>
+                <div class="dropdown">
+                    <h2 class="fw-bold m-0 d-flex align-items-center cursor-pointer" id="deptDropdown"
+                        data-bs-toggle="dropdown" aria-expanded="false" style="letter-spacing: -1px; cursor: pointer;">
+                        PURCHASING <i class="fas fa-chevron-down ms-2 fs-6 opacity-50"></i>
+                    </h2>
+                    <ul class="dropdown-menu shadow-lg" aria-labelledby="deptDropdown" style="z-index: 10000;">
+                        <li><a class="dropdown-item <%= (locals.currentDept === 'SALES MARKETING') ? 'active' : '' %>"
+                                href="/marketing">
+                                <i class="fas fa-bullhorn"></i> SALES MARKETING</a></li>
+                        <li><a class="dropdown-item <%= (locals.currentDept === 'HR') ? 'active' : '' %>" href="/hr">
+                                <i class="fas fa-users-cog"></i> HR</a></li>
+                        <li><a class="dropdown-item <%= (locals.currentDept === 'FINANCE') ? 'active' : '' %>"
+                                href="/finance">
+                                <i class="fas fa-wallet"></i> FINANCE</a></li>
+                        <li><a class="dropdown-item <%= (locals.currentDept === 'PURCHASING') ? 'active' : '' %>"
+                                href="/purchasing">
+                                <i class="fas fa-shopping-cart"></i> PURCHASING</a></li>
+                        <li><a class="dropdown-item <%= (locals.currentDept === 'PRODUKSI') ? 'active' : '' %>"
+                                href="/produksi">
+                                <i class="fas fa-industry"></i> PRODUKSI</a></li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li><a class="dropdown-item <%= (locals.currentDept === 'ALL' || !locals.currentDept) ? 'active' : '' %>"
+                                href="/dashboard">
+                                <i class="fas fa-th-large"></i> DAILY REPORT</a></li>
+                    </ul>
+                </div>
+                <p class="m-0 mt-1 text-muted" style="font-size: 0.9rem;">
+                    <span class="fw-bold text-dark">
+                        <%= user.full_name %>
+                    </span> — <%= user.position %>
+                </p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="/summary" class="btn btn-light border rounded-pill px-3 fw-bold">Summary</a>
+                <a href="/input-report" class="btn btn-main rounded-pill px-4 fw-bold shadow-sm">Tambah</a>
+                <a href="/logout" class="btn btn-light border rounded-pill"><i
+                        class="fas fa-power-off text-danger"></i></a>
+            </div>
+        </div>
+
+        <div class="glass">
+            <div class="table-responsive">
+                <table class="table mb-0">
+                    <thead>
+                        <tr>
+                            <th rowspan="2">NO</th>
+                            <th rowspan="2">NAMA</th>
+                            <th rowspan="2">POSISI</th>
+                            <th rowspan="2">DIVISI</th>
+                            <th rowspan="2" style="min-width: 250px;">LAPORAN</th>
+                            <th colspan="2">WAKTU</th>
+                            <th rowspan="2">MASALAH</th>
+                            <th rowspan="2">SOLUSI</th>
+                            <th rowspan="2">FILE</th>
+                            <th rowspan="2" style="width: 130px;">STATUS</th>
+                            <th rowspan="2">AKSI</th>
+                        </tr>
+                        <tr>
+                            <th>TANGGAL</th>
+                            <th>JAM</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (typeof reports !=='undefined' && reports.length> 0) {
+                            var count = 1;
+                            reports.forEach(function(r) {
+                            var isAdmin = (userPos.toLowerCase() === "tester" || userPos.toLowerCase() === "manager");
+                            %>
+                            <tr class="text-center">
+                                <td>
+                                    <%= count++ %>
+                                </td>
+                                <td class="text-start fw-bold">
+                                    <%= r.full_name %>
+                                </td>
+                                <td><span class="badge bg-light text-dark fw-normal">
+                                        <%= r.position %>
+                                    </span></td>
+                                <td><span class="badge border text-muted fw-bold" style="font-size: 0.7rem;">
+                                        <%= r.department || "-" %>
+                                    </span></td>
+                                <td class="text-start" style="font-size: 0.85rem;">
+                                    <%= r.task_description %>
+                                </td>
+                                <td>
+                                    <%= new Date(r.report_date).toLocaleDateString('id-ID') %>
+                                </td>
+                                <td class="fw-bold text-primary">
+                                    <%= (r.report_time) ? r.report_time.toString().substring(0,5) : "--:--" %>
+                                </td>
+                                <td class="text-danger small">
+                                    <%= r.issue || "-" %>
+                                </td>
+                                <td class="text-success small">
+                                    <%= r.solution || "-" %>
+                                </td>
+                                <td>
+                                    <% if (r.attachment_path && r.attachment_path !=="" && r.attachment_path !=="[]" ) {
+                                        try { let files=JSON.parse(r.attachment_path); if (!Array.isArray(files))
+                                        files=[files]; if (files.length> 0) { %>
+                                        <a href="/preview/<%= r.id %>" target="_blank" class="btn-file-link">
+                                            <i class="fas fa-eye me-1"></i> Preview (<%= files.length %>)
+                                        </a>
+                                        <% } else { %> - <% } } catch (e) { %> - <% } } else { %> - <% } %>
+                                </td>
+                                <td>
+                                    <% var c="bg-pending" ; if(r.status=="Approved" ) c="bg-approved" ;
+                                        if(r.status=="Rejected" ) c="bg-rejected" ; %>
+                                        <div id="badge-<%= r.id %>"
+                                            class="status-badge <%= c %> <%= !isAdmin ? 'disabled' : '' %>"
+                                            onclick="openStatusMenu(this, '<%= r.id %>', '<%= r.status %>', <%= isAdmin %>)">
+                                            <span>
+                                                <%= r.status %>
+                                            </span>
+                                            <% if(isAdmin) { %><i class="fas fa-chevron-down ms-2"
+                                                    style="font-size: 0.7em;"></i>
+                                                <% } %>
+                                        </div>
+                                </td>
+                                <td>
+                                    <% if(isAdmin) { %>
+                                        <a href="javascript:void(0)" class="text-danger"
+                                            onclick="confirmDelete('<%= r.id %>')"><i class="fas fa-trash"></i></a>
+                                        <% } else { %> <i class="fas fa-lock opacity-25"></i>
+                                            <% } %>
+                                </td>
+                            </tr>
+                            <% }); } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function confirmDelete(id) {
+            Swal.fire({
+                title: 'Apakah Anda yakin?', text: "Laporan yang dihapus tidak dapat dikembalikan!", icon: 'warning',
+                showCancelButton: true, confirmButtonColor: '#d33', cancelButtonColor: '#3085d6', confirmButtonText: 'Ya, Hapus!', cancelButtonText: 'Batal'
+            }).then((result) => { if (result.isConfirmed) { window.location.href = '/delete-report/' + id; } })
+        }
+
+        function openStatusMenu(element, id, currentStatus, isAdmin) {
+            if (!isAdmin) return;
+            const existingMenu = document.querySelector('.status-menu-portal');
+            if (existingMenu) existingMenu.remove();
+            const menu = document.createElement('div');
+            menu.className = 'status-menu-portal';
+            const options = [
+                { val: 'Pending', icon: 'fa-clock', color: '#d48806' },
+                { val: 'Approved', icon: 'fa-check-circle', color: '#1e8e3e' },
+                { val: 'Rejected', icon: 'fa-times-circle', color: '#cf1322' }
+            ];
+            options.forEach(opt => {
+                const item = document.createElement('div');
+                item.className = 'status-menu-item';
+                item.innerHTML = `<i class="fas ${opt.icon}" style="color: ${opt.color}"></i> ${opt.val}`;
+                item.onclick = (e) => { e.stopPropagation(); updateStatus(id, opt.val); menu.remove(); };
+                menu.appendChild(item);
+            });
+            document.body.appendChild(menu);
+            const rect = element.getBoundingClientRect();
+            menu.style.top = (rect.bottom + 5) + 'px';
+            menu.style.left = (rect.left - (150 - rect.width) / 2) + 'px';
+            document.addEventListener('click', function closeMenu(e) {
+                if (!menu.contains(e.target) && !element.contains(e.target)) { menu.remove(); document.removeEventListener('click', closeMenu); }
+            });
+        }
+
+        function updateStatus(id, newStatus) {
+            const badge = document.getElementById('badge-' + id);
+            const originalContent = badge.innerHTML;
+            const originalClass = badge.className;
+            badge.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i>';
+            badge.className = 'status-badge bg-light text-muted';
+
+            fetch('/update-status/' + id + '?ajax=true', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: newStatus })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        let newClass = 'bg-pending';
+                        if (newStatus === 'Approved') newClass = 'bg-approved';
+                        if (newStatus === 'Rejected') newClass = 'bg-rejected';
+                        badge.className = `status-badge ${newClass}`;
+                        badge.innerHTML = `<span>${newStatus}</span><i class="fas fa-chevron-down ms-2" style="font-size: 0.7em;"></i>`;
+                        badge.setAttribute('onclick', `openStatusMenu(this, '${id}', '${newStatus}', true)`);
+                        Swal.fire({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, icon: 'success', title: 'Status diperbarui' });
+                    } else { throw new Error(data.message); }
+                })
+                .catch(err => {
+                    badge.innerHTML = originalContent; badge.className = originalClass;
+                    Swal.fire('Error', 'Gagal update status: ' + err.message, 'error');
+                });
+        }
+    </script>
+</body>
+
+</html>

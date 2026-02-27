@@ -1,0 +1,258 @@
+</div><!-- /page-content -->
+</div><!-- /main-wrapper -->
+
+
+<script>
+    // ── THEME TOGGLE ──
+    const savedTheme = localStorage.getItem('dr_theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+
+    window.toggleTheme = function () {
+        const curr = document.documentElement.getAttribute('data-theme');
+        const next = curr === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('dr_theme', next);
+        const icon = document.getElementById('themeIcon');
+        if (icon) icon.className = next === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+    };
+
+    // Set theme icon
+    document.addEventListener('DOMContentLoaded', () => {
+        const icon = document.getElementById('themeIcon');
+        const theme = document.documentElement.getAttribute('data-theme');
+        if (icon) icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+    });
+
+    // ── SIDEBAR MOBILE ──
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+
+    if (menuToggle) {
+        menuToggle.addEventListener('click', () => {
+            const isOpen = sidebar.classList.toggle('open');
+            overlay.style.display = isOpen ? 'block' : 'none';
+        });
+    }
+    if (overlay) {
+        overlay.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+            overlay.style.display = 'none';
+        });
+    }
+
+    // ── NOTIFICATION DROPDOWN ──
+    const notifBtn = document.getElementById('notifBtn');
+    const notifDropdown = document.getElementById('notifDropdown');
+
+    if (notifBtn && notifDropdown) {
+        notifBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            notifDropdown.classList.toggle('show');
+        });
+        document.addEventListener('click', (e) => {
+            if (!notifDropdown.contains(e.target) && e.target !== notifBtn) {
+                notifDropdown.classList.remove('show');
+            }
+        });
+    }
+
+    // ── GLOBAL QUERY PARAMS HANDLER ──
+    const urlParams = new URLSearchParams(window.location.search);
+    const errParam = urlParams.get('err');
+    if (errParam === 'file_not_found') {
+        Swal.fire({
+            icon: 'info',
+            title: 'Tidak Ada Lampiran',
+            text: 'User tidak menyertakan gambar / dokumen fisik untuk laporan ini.',
+            confirmButtonColor: '#6366f1'
+        }).then(() => {
+            const newUrl = window.location.pathname;
+            window.history.replaceState({}, document.title, newUrl);
+        });
+    }
+
+
+    window.markAllRead = function () {
+        const url = '<%= user.isDirector ? "/director/notif/read-all" : "/notif/read-all" %>';
+        fetch(url, { method: 'POST' })
+            .then(() => {
+                document.querySelectorAll('.notif-item.unread').forEach(el => el.classList.remove('unread'));
+                const dot = document.querySelector('.badge-dot');
+                if (dot) dot.remove();
+                const countEl = document.getElementById('notifCount');
+                if (countEl) countEl.textContent = '0';
+            });
+    };
+
+    window.handleNotifClick = function (id, type, refId, isDirector) {
+        const baseUrl = isDirector ? '/director' : '';
+        const readUrl = (isDirector ? '/director' : '') + '/notif/read/' + id;
+
+        // Tandai sudah dibaca dulu
+        fetch(readUrl).then(() => {
+            // Arahkan sesuai tipe
+            if (type === 'urgent_solution' && refId) {
+                // Langsung ke detail laporan di SDA
+                window.location.href = '/sda/report/' + refId;
+            } else if (type === 'high_value' && refId) {
+                <% if (typeof user !== 'undefined' && user && user.role_name === 'super_duper_admin') { %>
+                    window.location.href = '/sda/report/' + refId;
+                <% } else { %>
+                    window.location.href = '/admin/report/' + refId;
+                <% } %>
+            } else if (type === 'laporan_diapprove' && refId) {
+                window.location.href = '/report/' + refId;
+            } else if (type === 'laporan_direview' && refId) {
+                // Director gave solution — user needs to see their report
+                window.location.href = '/report/' + refId;
+            } else if (type === 'belum_lapor') {
+                window.location.href = baseUrl + '/dashboard';
+            } else {
+                window.location.href = baseUrl + '/dashboard';
+            }
+        }).catch(err => {
+            console.error('Error handling notif click:', err);
+            window.location.href = baseUrl + '/dashboard';
+        });
+    };
+
+
+
+    // ── AUTO-DISMISS ALERTS ──
+    setTimeout(() => {
+        document.querySelectorAll('.alert[data-auto-dismiss]').forEach(el => {
+            el.style.transition = 'opacity 0.5s';
+            el.style.opacity = '0';
+            setTimeout(() => el.remove(), 500);
+        });
+    }, 4000);
+
+    // ── POPUP UNREAD NOTIFICATION AT LOGIN ──
+    (function checkUnreadPopup() {
+        const sessionKey = 'notif_popup_shown_<%= typeof user !== "undefined" && user ? user.id : 0 %>';
+        if (sessionStorage.getItem(sessionKey)) return; // hanya tampil sekali per sesi
+        <% if (typeof notifications !== 'undefined' && notifications) { %>
+            const unread = <%- JSON.stringify(notifications.filter(n => !n.is_read)) %>;
+            if (unread && unread.length > 0) {
+                sessionStorage.setItem(sessionKey, '1');
+                const isUrgent = unread.some(n => n.type === 'urgent_solution');
+                Swal.fire({
+                    title: isUrgent ? '🔴 Ada Permintaan Urgent!' : '🔔 Notifikasi Baru',
+                    html: `<div style="text-align:left;font-size:0.9rem;">
+                        <p style="margin-bottom:8px;">Anda memiliki <strong>${unread.length} notifikasi</strong> yang belum dibaca:</p>
+                        <ul style="padding-left:16px;margin:0;">
+                            ${unread.slice(0, 3).map(n => {
+                        const msg = (n.message || 'Notifikasi baru').replace(/`/g, "'").replace(/\${/g, '{');
+                        return '<li style="margin-bottom:4px;font-size:0.82rem;color:#555;">' + msg + '</li>';
+                    }).join('')}
+                            ${unread.length > 3 ? '<li style="color:#888;font-size:0.8rem;">...dan ' + (unread.length - 3) + ' lainnya</li>' : ''}
+                        </ul>
+                    </div>`,
+                    icon: isUrgent ? 'warning' : 'info',
+                    showCancelButton: true,
+                    confirmButtonText: isUrgent ? 'Lihat Urgents' : 'Lihat Notifikasi',
+                    cancelButtonText: 'Tutup',
+                    confirmButtonColor: isUrgent ? '#ef4444' : '#6366f1',
+                }).then(result => {
+                    if (result.isConfirmed) {
+                        <% if (typeof user !== 'undefined' && user && user.role_name === 'super_duper_admin') { %>
+                            window.location.href = isUrgent ? '/sda/urgent' : '/sda/dashboard';
+                        <% } else if (typeof user !== 'undefined' && user && user.role_name === 'super_admin') { %>
+                            window.location.href = '/sa/dashboard';
+                        <% } else { %>
+                            window.location.href = '/dashboard';
+                        <% } %>
+                    }
+                });
+            }
+        <% } %>
+    })();
+
+    // ── REAL-TIME HIGH VALUE MONITORING (SDA ONLY, non-Director) ──
+    <% if (typeof user !== 'undefined' && user && user.role_name === 'super_duper_admin' && !user.isDirector) { %>
+        // Request Permission Desktop Notification
+        if (Notification.permission !== "granted" && Notification.permission !== "denied") {
+            Notification.requestPermission();
+        }
+
+        async function checkHighValueReports() {
+            try {
+                const res = await fetch('/sda/api/check-high-value', {
+                    headers: { 'Accept': 'application/json' }
+                });
+
+                // Sesi habis atau akses ditolak — diam-diam berhenti
+                if (!res.ok) {
+                    if (res.status === 401) {
+                        // Sesi habis, hentikan interval
+                        if (window._sdaMonitorInterval) clearInterval(window._sdaMonitorInterval);
+                        return;
+                    }
+                    return; // 403 / 5xx — skip
+                }
+
+                const contentType = res.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    return; // Bukan JSON (mungkin halaman HTML redirect)
+                }
+
+                const data = await res.json();
+
+                if (data.success && data.data) {
+                    const notifId = data.data.notif_id;
+                    const lastShownId = localStorage.getItem('last_high_value_notif_id');
+
+                    if (notifId.toString() !== lastShownId) {
+                        localStorage.setItem('last_high_value_notif_id', notifId);
+
+                        // 1. Desktop Notification (Push-like)
+                        if (Notification.permission === "granted") {
+                            const n = new Notification("⚠️ Peringatan Pengeluaran!", {
+                                body: data.data.message,
+                                icon: '/favicon.ico' // Gantilah dengan path icon Anda jika ada
+                            });
+                            n.onclick = () => {
+                                window.focus();
+                                window.location.href = '/sda/report/' + data.data.report_id;
+                            };
+                        }
+
+                        // 2. SweetAlert2 Popup (In-app)
+                        Swal.fire({
+                            title: '⚠️ Pengeluaran Tinggi!',
+                            html: `${data.data.message}.`,
+                            icon: 'warning',
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: true,
+                            confirmButtonText: 'Cek Laporan',
+                            timer: 15000,
+                            timerProgressBar: true
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = '/sda/report/' + data.data.report_id;
+                            }
+                        });
+
+                        // Play sound
+                        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                        const osc = audioCtx.createOscillator();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(550, audioCtx.currentTime);
+                        osc.connect(audioCtx.destination);
+                        osc.start();
+                        osc.stop(audioCtx.currentTime + 0.3);
+                    }
+                }
+            } catch (e) {
+                console.error('SDA Monitor error:', e);
+            }
+        }
+        window._sdaMonitorInterval = setInterval(checkHighValueReports, 30000);
+        setTimeout(checkHighValueReports, 2000);
+    <% } %>
+</script>
+</body>
+
+</html>

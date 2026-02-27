@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MFA Verification — Daily Report</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .mfa-card {
+            width: 100%;
+            max-width: 420px;
+            background: #ffffff;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            border-radius: 28px;
+            padding: 45px 40px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.08);
+            color: #1e1b4b;
+            text-align: center;
+        }
+
+        .shield-icon {
+            font-size: 3.8rem;
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 24px;
+        }
+
+        h2 {
+            font-weight: 800;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+            color: #1e1b4b;
+        }
+
+        p {
+            color: #64748b;
+            font-size: 0.95rem;
+            margin-bottom: 30px;
+        }
+
+        .code-input {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            color: #1e1b4b;
+            font-size: 1.5rem;
+            letter-spacing: 8px;
+            text-align: center;
+            font-weight: 700;
+            padding: 12px;
+            width: 100%;
+            margin-bottom: 24px;
+            transition: all 0.3s;
+        }
+
+        .code-input:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+            background: #ffffff;
+        }
+
+        .btn-verify {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: 700;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .btn-verify:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .back-link {
+            display: block;
+            margin-top: 24px;
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: color 0.3s;
+        }
+
+        .back-link:hover {
+            color: #6366f1;
+        }
+
+        .error-msg {
+            background: rgba(239, 68, 68, 0.05);
+            border: 1px solid rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="mfa-card">
+        <div class="shield-icon">
+            <i class="fas fa-shield-halved"></i>
+        </div>
+        <h2>Dua Faktor Autentikasi</h2>
+        <p>Buka aplikasi autentikator Anda (Google Authenticator/Authy) dan masukkan kode 6-digit.</p>
+
+        <% if (error) { %>
+            <div class="error-msg">
+                <i class="fas fa-exclamation-circle me-1"></i>
+                <%= error %>
+            </div>
+            <% } %>
+
+                <form action="/verify-mfa" method="POST">
+                    <input type="text" name="token" class="code-input" placeholder="000000" maxlength="6"
+                        inputmode="numeric" autocomplete="one-time-code" autofocus required>
+                    <button type="submit" class="btn-verify">Verifikasi Akun</button>
+                </form>
+
+                <a href="/logout" class="back-link">
+                    <i class="fas fa-arrow-left me-1"></i> Kembali ke Login
+                </a>
+    </div>
+
+    <script>
+        // Auto-focus logic or input masking can be added here
+        const input = document.querySelector('.code-input');
+        input.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+        });
+    </script>
+</body>
+
+</html>

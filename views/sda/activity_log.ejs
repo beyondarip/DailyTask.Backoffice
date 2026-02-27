@@ -1,0 +1,96 @@
+<% const title='Activity Log' ; const pageTitle='Activity Log — Users Not Reported Today' ; const
+    activePage='activity_log' ; %>
+    <%- include('../partials/layout_head') %>
+
+        <div class="page-header d-flex align-items-center justify-content-between mb-4">
+            <div>
+                <h1><i class="fas fa-history me-2"></i>Activity Log</h1>
+                <p class="mb-0 text-muted">Daftar pengguna yang belum mengirimkan laporan harian untuk hari ini:
+                    <strong>
+                        <%= new Date(todayStr).toLocaleDateString('id-ID', { weekday: 'long' , day: 'numeric' ,
+                            month: 'long' , year: 'numeric' }) %>
+                    </strong>
+                </p>
+            </div>
+            <div class="badge bg-warning text-dark px-3 py-2 shadow-sm" style="border-radius: 10px; font-size: 0.9rem;">
+                <i class="fas fa-user-clock me-1"></i>
+                <%= notReported.length %> Pengguna Belum Lapor
+            </div>
+        </div>
+
+        <div class="card shadow-sm border-0" style="border-radius: 15px; overflow: hidden;">
+            <div class="card-body-custom p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light text-muted small text-uppercase fw-bold">
+                            <tr>
+                                <th class="ps-4 py-3">#</th>
+                                <th class="py-3">User</th>
+                                <th class="py-3">Perusahaan</th>
+                                <th class="py-3">Jabatan</th>
+                                <th class="py-3 text-center">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% if (notReported.length===0) { %>
+                                <tr>
+                                    <td colspan="5" class="text-center py-5">
+                                        <div class="text-muted">
+                                            <i class="fas fa-check-circle text-success mb-3"
+                                                style="font-size: 3rem; opacity: 0.3;"></i>
+                                            <p class="mb-0">Luar biasa! Semua pengguna telah mengirimkan laporan hari
+                                                ini.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <% } else { %>
+                                    <% notReported.forEach((user, index)=> { %>
+                                        <tr>
+                                            <td class="ps-4 text-muted small fw-bold">#<%= index + 1 %>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center gap-3">
+                                                    <div class="user-avatar"
+                                                        style="width: 34px; height: 34px; font-size: 0.8rem; border-radius: 8px;">
+                                                        <%= user.full_name.charAt(0).toUpperCase() %>
+                                                    </div>
+                                                    <div class="fw-bold">
+                                                        <%= user.full_name %>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-light text-dark border px-2 py-1">
+                                                    <%= user.company_name || 'Executive' %>
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <%= user.position || '-' %>
+                                            </td>
+                                            <td class="text-center">
+                                                <span
+                                                    class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-3 py-2"
+                                                    style="border-radius: 6px; font-weight: 600;">
+                                                    <i class="fas fa-times-circle me-1"></i> Belum Lapor
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        <% }) %>
+                                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <%- include('../partials/layout_foot') %>
+
+            <style>
+                .table-hover tbody tr:hover {
+                    background-color: rgba(99, 102, 241, 0.02) !important;
+                }
+
+                .card-body-custom {
+                    background: var(--card-bg);
+                }
+            </style>

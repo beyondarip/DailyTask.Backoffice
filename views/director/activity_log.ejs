@@ -1,0 +1,147 @@
+<% const title='Executive Activity Log' ; const pageTitle='Executive Activity Log' ; const activePage='activity_log' ;
+    %>
+    <%- include('../partials/layout_head') %>
+
+        <div
+            class="page-header d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4 gap-3">
+            <div>
+                <h1><i class="fas fa-history me-2 text-primary"></i>Executive Activity Log</h1>
+                <p class="mb-0 text-muted">Daftar Eksekutif yang belum mengirimkan laporan untuk tanggal:
+                    <span class="fw-bold text-dark">
+                        <%= new Date(todayStr).toLocaleDateString('id-ID', { weekday: 'long' , day: 'numeric' ,
+                            month: 'long' , year: 'numeric' }) %>
+                    </span>
+                </p>
+            </div>
+
+            <div class="d-flex align-items-center gap-3">
+                <form action="/director/activity_log" method="GET" class="d-flex align-items-center gap-2">
+                    <input type="date" name="date" class="form-control form-control-sm"
+                        value="<%= locals.selectedDate || todayStr %>" onchange="this.form.submit()">
+                </form>
+                <div class="badge bg-warning text-dark px-3 py-2 shadow-sm"
+                    style="border-radius: 10px; font-size: 0.9rem;">
+                    <i class="fas fa-user-shield me-1"></i>
+                    <%= notReported.length %> Belum Lapor
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Belum Lapor -->
+            <div class="col-lg-6">
+                <div class="card shadow-sm border-0" style="border-radius: 15px; overflow: hidden;">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0 fw-bold text-danger"><i class="fas fa-user-times me-2"></i>Belum Mengirim
+                            Laporan
+                        </h5>
+                    </div>
+                    <div class="card-body-custom p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="bg-light text-muted small text-uppercase fw-bold">
+                                    <tr>
+                                        <th class="ps-4 py-3">Nama Eksekutif</th>
+                                        <th class="py-3">Jabatan</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% if (notReported.length===0) { %>
+                                        <tr>
+                                            <td colspan="2" class="text-center py-4 text-muted small">
+                                                Semua eksekutif telah lapor.
+                                            </td>
+                                        </tr>
+                                        <% } else { %>
+                                            <% notReported.forEach(exec=> { %>
+                                                <tr>
+                                                    <td class="ps-4">
+                                                        <div class="d-flex align-items-center gap-2">
+                                                            <div class="user-avatar"
+                                                                style="width: 25px; height: 25px; font-size: 0.7rem; border-radius: 6px; background: #fee2e2; color: #ef4444; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                                                                <%= exec.full_name.charAt(0).toUpperCase() %>
+                                                            </div>
+                                                            <div class="fw-semibold small">
+                                                                <%= exec.full_name %>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td class="small text-muted">
+                                                        <%= exec.position || 'Executive' %>
+                                                    </td>
+                                                </tr>
+                                                <% }) %>
+                                                    <% } %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sudah Lapor -->
+            <div class="col-lg-6">
+                <div class="card shadow-sm border-0" style="border-radius: 15px; overflow: hidden;">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0 fw-bold text-success"><i class="fas fa-user-check me-2"></i>Sudah Mengirim
+                            Laporan
+                        </h5>
+                    </div>
+                    <div class="card-body-custom p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="bg-light text-muted small text-uppercase fw-bold">
+                                    <tr>
+                                        <th class="ps-4 py-3">Nama Eksekutif</th>
+                                        <th class="py-3 text-end pe-4">Waktu</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% if (reported.length===0) { %>
+                                        <tr>
+                                            <td colspan="2" class="text-center py-4 text-muted small">
+                                                Belum ada laporan masuk.
+                                            </td>
+                                        </tr>
+                                        <% } else { %>
+                                            <% reported.forEach(exec=> { %>
+                                                <tr>
+                                                    <td class="ps-4">
+                                                        <a href="/director/report/<%= exec.report_id %>"
+                                                            class="text-decoration-none d-flex align-items-center gap-2">
+                                                            <div class="user-avatar"
+                                                                style="width: 25px; height: 25px; font-size: 0.7rem; border-radius: 6px; background: #dcfce7; color: #22c55e; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                                                                <%= exec.full_name.charAt(0).toUpperCase() %>
+                                                            </div>
+                                                            <div class="fw-semibold small text-dark">
+                                                                <%= exec.full_name %>
+                                                            </div>
+                                                        </a>
+                                                    </td>
+                                                    <td class="text-end pe-4">
+                                                        <span class="badge bg-success bg-opacity-10 text-success small">
+                                                            <%= exec.report_time.substring(0,5) %>
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                                <% }) %>
+                                                    <% } %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <%- include('../partials/layout_foot') %>
+
+            <style>
+                .table-hover tbody tr:hover {
+                    background-color: rgba(255, 215, 0, 0.03) !important;
+                }
+
+                .card-body-custom {
+                    background: var(--card-bg);
+                }
+            </style>

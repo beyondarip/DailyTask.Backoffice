@@ -1,0 +1,225 @@
+<% const title='Executive Report Detail' ; const pageTitle='Executive Report Detail' ; const
+    activePage='director_dashboard' ; %>
+    <%- include('../partials/layout_head') %>
+
+        <div class="row">
+            <div class="col-lg-8">
+                <!-- Main Report Card -->
+                <div class="card border-0 shadow-sm mb-4" style="border-radius: 20px;">
+                    <div class="card-header bg-white border-bottom-0 pt-4 px-4 pb-0">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span
+                                class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill small fw-bold">
+                                #<%= report.id %>
+                            </span>
+                            <span class="badge-status badge-<%= report.status %>">
+                                <%= report.status %>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="mb-4">
+                            <h2 class="fw-bold mb-1">
+                                <%= report.full_name %>
+                            </h2>
+                            <p class="text-muted small mb-0">
+                                <%= report.position %> • <%= new Date(report.report_date).toLocaleDateString('id-ID', {
+                                        weekday: 'long' , year: 'numeric' , month: 'long' , day: 'numeric' }) %>
+                            </p>
+                        </div>
+
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-12">
+                                <label class="form-label text-muted small text-uppercase fw-bold mb-2">Executive
+                                    Activity
+                                    Summary</label>
+                                <div class="bg-light p-3 rounded-4"
+                                    style="line-height: 1.6; font-size: 1rem; color: #1e293b; white-space: pre-wrap;">
+                                    <%= report.task_description %>
+                                </div>
+                            </div>
+
+                            <% if (report.issue) { %>
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted small text-uppercase fw-bold mb-2">Critical
+                                        Issues</label>
+                                    <div class="p-3 border border-danger border-opacity-10 bg-danger bg-opacity-10 rounded-4"
+                                        style="font-size: 0.9rem; color: #991b1b;">
+                                        <%= report.issue %>
+                                    </div>
+                                </div>
+                                <% } %>
+
+                                    <% if (report.solution) { %>
+                                        <div class="col-md-6">
+                                            <label
+                                                class="form-label text-muted small text-uppercase fw-bold mb-2">Strategic
+                                                Solutions</label>
+                                            <div class="p-3 border border-success border-opacity-10 bg-success bg-opacity-10 rounded-4"
+                                                style="font-size: 0.9rem; color: #166534;">
+                                                <%= report.solution %>
+                                            </div>
+                                        </div>
+                                        <% } %>
+
+
+                        </div>
+
+                        <% if (attachments && attachments.length> 0) { %>
+                            <div class="mb-4">
+                                <label class="form-label text-muted small text-uppercase fw-bold mb-2">Supporting
+                                    Evidence / Attachments (<%= attachments.length %>)</label>
+                                <div class="d-flex flex-wrap gap-3">
+                                    <% attachments.forEach((att, idx)=> { %>
+                                        <% if (att.attachment_path) { %>
+                                            <% const isPdf=att.attachment_path.toLowerCase().endsWith('.pdf'); %>
+                                                <div class="p-3 border rounded-3 bg-white shadow-sm d-inline-block">
+                                                    <a href="/director/attachment/view/<%= att.attachment_path.split('/').pop() %>"
+                                                        class="text-decoration-none d-flex align-items-center gap-3 px-2">
+                                                        <div class="position-relative border rounded overflow-hidden"
+                                                            style="height: 60px; width: 60px; background: #f8fafc;">
+                                                            <% if (isPdf) { %>
+                                                                <div
+                                                                    class="d-flex align-items-center justify-content-center h-100 text-danger">
+                                                                    <i class="fas fa-file-pdf fa-2x"></i>
+                                                                </div>
+                                                                <% } else { %>
+                                                                    <img src="/director/attachment/<%= att.attachment_path.split('/').pop() %>"
+                                                                        class="w-100 h-100" style="object-fit: cover;">
+                                                                    <% } %>
+                                                        </div>
+                                                        <div>
+                                                            <div class="fw-bold text-dark">File <%= idx + 1 %>
+                                                            </div>
+                                                            <div class="small text-muted">
+                                                                <%= att.attachment_path.split('/').pop().substring(0,20)
+                                                                    %>
+                                                                    <%= att.attachment_path.split('/').pop().length> 20
+                                                                        ? '...' : '' %>
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                </div>
+                                                <% } %>
+                                                    <% }) %>
+                                </div>
+                            </div>
+                            <% } else if (report.attachment_path) { %>
+                                <div class="mb-4">
+                                    <label class="form-label text-muted small text-uppercase fw-bold mb-2">Supporting
+                                        Evidence / Attachment</label>
+                                    <div class="p-3 border rounded-3 bg-white shadow-sm d-inline-block">
+                                        <a href="/director/attachment/view/<%= report.attachment_path.split('/').pop() %>"
+                                            class="text-decoration-none d-flex align-items-center gap-3 px-2">
+                                            <div class="position-relative border rounded overflow-hidden"
+                                                style="height: 60px; width: 60px; background: #f8fafc;">
+                                                <% if (report.attachment_path.toLowerCase().endsWith('.pdf')) { %>
+                                                    <div
+                                                        class="d-flex align-items-center justify-content-center h-100 text-danger">
+                                                        <i class="fas fa-file-pdf fa-2x"></i>
+                                                    </div>
+                                                    <% } else { %>
+                                                        <img src="/director/attachment/<%= report.attachment_path.split('/').pop() %>"
+                                                            class="w-100 h-100" style="object-fit: cover;">
+                                                        <% } %>
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold text-dark">View Attachment</div>
+                                                <div class="small text-muted">Secured Document</div>
+                                            </div>
+                                        </a>
+                                    </div>
+                                </div>
+                                <% } %>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm mb-4" style="border-radius: 20px; overflow: hidden;">
+                    <div class="card-header bg-dark text-white p-4">
+                        <h5 class="fw-bold mb-0"><i class="fas fa-tasks me-2"></i>Executive Action</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <% if (report.status==='submitted' ) { %>
+                            <div class="alert alert-info border-0 rounded-4 p-3 mb-4">
+                                <div class="d-flex">
+                                    <i class="fas fa-info-circle mt-1 me-3"></i>
+                                    <div class="small">
+                                        This report is awaiting verification. You can approve it to finalize the entry.
+                                    </div>
+                                </div>
+                            </div>
+                            <button onclick="approveReport('<%= report.id %>')"
+                                class="btn btn-primary w-100 py-3 fw-bold mb-3"
+                                style="border-radius: 12px; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);">
+                                <i class="fas fa-check-circle me-2"></i> Approve Report
+                            </button>
+                            <% } else if (report.status==='approved' ) { %>
+                                <div class="text-center py-4">
+                                    <div
+                                        class="d-inline-flex bg-success bg-opacity-10 text-success p-4 rounded-circle mb-3">
+                                        <i class="fas fa-check-double fa-3x"></i>
+                                    </div>
+                                    <h5 class="fw-bold">Report Verified</h5>
+                                    <p class="text-muted small">This activity has been formally acknowledged and
+                                        archived.</p>
+                                </div>
+                                <% } %>
+
+                                    <div class="mt-4 pt-4 border-top">
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span class="text-muted small">Submission Date</span>
+                                            <span class="fw-bold small">
+                                                <%= new Date(report.created_at).toLocaleDateString() %>
+                                            </span>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span class="text-muted small">Submission Time</span>
+                                            <span class="fw-bold small">
+                                                <%= report.report_time %>
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <a href="/director/dashboard" class="btn btn-light w-100 py-2 mt-4"
+                                        style="border-radius: 10px;">
+                                        <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
+                                    </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            async function approveReport(id) {
+                const result = await Swal.fire({
+                    title: 'Approve Report?',
+                    text: "You are about to verify this executive activity entry.",
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#6366f1',
+                    cancelButtonColor: '#94a3b8',
+                    confirmButtonText: 'Yes, Approve',
+                    cancelButtonText: 'Cancel'
+                });
+
+                if (result.isConfirmed) {
+                    try {
+                        const response = await fetch(`/director/report/approve/${id}`, { method: 'POST' });
+                        const data = await response.json();
+                        if (data.success) {
+                            Swal.fire('Success', 'Report successfully approved.', 'success').then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire('Error', data.message || 'Failed to approve report.', 'error');
+                        }
+                    } catch (err) {
+                        Swal.fire('Error', 'Connection error.', 'error');
+                    }
+                }
+            }
+        </script>
+
+        <%- include('../partials/layout_foot') %>

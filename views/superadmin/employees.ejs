@@ -1,0 +1,587 @@
+<%- include('../partials/layout_head') %>
+
+    <% const title='Data Karyawan' ; const activePage='employees' ; %>
+
+        <div class="employees-viewport animate__animated animate__fadeIn no-select-global">
+            <!-- Header Section -->
+            <div class="header-light d-flex align-items-center justify-content-between mb-4">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="header-icon-box shadow-sm">
+                        <i class="fas fa-users-cog"></i>
+                    </div>
+                    <div>
+                        <h1 class="h3 mb-0 fw-bold header-title">DATA KARYAWAN</h1>
+                        <p class="text-muted small mb-0 fw-semibold">
+                            <i class="fas fa-building me-1 opacity-50"></i>
+                            <%= user.company_name %>
+                        </p>
+                    </div>
+                </div>
+                <div class="date-capsule d-none d-md-flex">
+                    <i class="far fa-calendar-alt me-2 text-indigo"></i>
+                    <%= new Date().toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'}) %>
+                </div>
+            </div>
+
+            <!-- Dept Selector Area - Light Grid -->
+            <div class="dept-selector-wrapper mb-4">
+                <div class="dept-grid">
+                    <% deptStats.forEach(dept=> { %>
+                        <a href="/sa/employees?dept_id=<%= dept.id %>"
+                            class="dept-card-light <%= selectedDept && selectedDept.id === dept.id ? 'active' : '' %>">
+                            <div class="dept-light-icon">
+                                <i class="fas fa-user-friends"></i>
+                            </div>
+                            <div class="dept-light-body">
+                                <span class="dept-light-name">
+                                    <%= dept.department_name %>
+                                </span>
+                                <span class="dept-light-count">
+                                    <%= dept.employee_count %> Anggota
+                                </span>
+                            </div>
+                            <% if (selectedDept && selectedDept.id===dept.id) { %>
+                                <div class="active-dot"></div>
+                                <% } %>
+                        </a>
+                        <% }) %>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="content-body">
+                <% if (selectedDept) { %>
+                    <div class="card data-card-light shadow-sm animate__animated animate__fadeIn">
+                        <!-- Search & Info Bar -->
+                        <div
+                            class="card-header-v5 border-bottom p-3 d-flex justify-content-between align-items-center flex-wrap gap-3">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="dept-badge-label">
+                                    <%= selectedDept.department_name %>
+                                </div>
+                                <span class="staff-count-label">
+                                    <%= employees.length %> Staff
+                                </span>
+                            </div>
+
+                            <div class="search-container-light">
+                                <i class="fas fa-search search-icon-light"></i>
+                                <input type="text" id="realTimeSearch" class="search-input-light text-selectable"
+                                    placeholder="Cari nama staff..." autocomplete="off">
+                                <span class="esc-hint">Esc</span>
+                            </div>
+                        </div>
+
+                        <!-- Table Area -->
+                        <div class="table-container custom-scrollbar">
+                            <table class="table table-light-style align-middle mb-0" id="employeeTable">
+                                <thead>
+                                    <tr>
+                                        <th class="ps-4">#</th>
+                                        <th>STAFF</th>
+                                        <th>KONTAK</th>
+                                        <th class="d-none d-md-table-cell">POSISI</th>
+                                        <th class="text-center pe-4">HAK AKSES</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% if (employees.length===0) { %>
+                                        <tr>
+                                            <td colspan="5" class="text-center py-5">
+                                                <div class="empty-state-light">
+                                                    <i class="fas fa-user-ninja mb-3"></i>
+                                                    <h5>Belum ada data karyawan</h5>
+                                                    <p class="text-muted small">Tambahkan karyawan melalui menu
+                                                        manajemen pusat.</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <% } else { %>
+                                            <% employees.forEach((emp, index)=> { %>
+                                                <tr class="staff-row-light text-selectable">
+                                                    <td class="ps-4 text-muted fw-bold" style="font-size: 0.75rem;">
+                                                        #<%= index + 1 %>
+                                                    </td>
+                                                    <td>
+                                                        <div class="staff-cell">
+                                                            <div class="avatar-light"
+                                                                style="--accent: <%= emp.is_active ? '#6366f1' : '#94a3b8' %>">
+                                                                <%= emp.full_name.charAt(0).toUpperCase() %>
+                                                                    <% if (emp.is_active) { %>
+                                                                        <span class="active-pulse"></span>
+                                                                        <% } %>
+                                                            </div>
+                                                            <div class="staff-info">
+                                                                <span class="name">
+                                                                    <%= emp.full_name %>
+                                                                </span>
+                                                                <span class="role-sub">
+                                                                    <%= emp.role_name==='admin_divisi' ? 'Admin Divisi'
+                                                                        : 'Standard User' %>
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <div class="contact-text">
+                                                            <i class="far fa-envelope opacity-50 me-2 text-indigo"></i>
+                                                            <span>
+                                                                <%= emp.email %>
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                    <td class="d-none d-md-table-cell text-muted small">
+                                                        <%= emp.position || 'General Staff' %>
+                                                    </td>
+                                                    <td class="text-center pe-4">
+                                                        <span
+                                                            class="access-badge <%= emp.role_name === 'admin_divisi' ? 'admin' : 'user' %>">
+                                                            <%= emp.role_name==='admin_divisi' ? 'ADMIN' : 'USER' %>
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                                <% }) %>
+                                                    <tr id="noMatchRow" style="display: none;">
+                                                        <td colspan="5" class="text-center py-5">
+                                                            <div class="no-results-light">
+                                                                <i class="fas fa-search-minus mb-3"></i>
+                                                                <p class="fw-bold mb-0">Tidak ditemukan</p>
+                                                                <span class="text-muted small">Coba cari dengan kata
+                                                                    kunci lain</span>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    <% } %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <% } else { %>
+                        <div class="welcome-section-light">
+                            <div class="icon-stack">
+                                <i class="fas fa-users welcome-icon-main"></i>
+                                <i class="fas fa-plus icon-sub-1"></i>
+                                <i class="fas fa-check icon-sub-2"></i>
+                            </div>
+                            <h4 class="fw-bold mt-4">Manajemen Data Karyawan</h4>
+                            <p class="text-muted px-4">Pilih departemen di atas untuk mulai melihat detail informasi SDM
+                                Anda secara lengkap.</p>
+                        </div>
+                        <% } %>
+            </div>
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const searchInput = document.getElementById('realTimeSearch');
+                if (searchInput) {
+                    searchInput.addEventListener('input', function () {
+                        const filter = this.value.toLowerCase();
+                        const rows = document.querySelectorAll('.staff-row-light');
+                        const noMatchRow = document.getElementById('noMatchRow');
+                        let found = false;
+
+                        rows.forEach(row => {
+                            const text = row.innerText.toLowerCase();
+                            if (text.includes(filter)) {
+                                row.style.display = "";
+                                found = true;
+                            } else {
+                                row.style.display = "none";
+                            }
+                        });
+
+                        if (noMatchRow) noMatchRow.style.display = found ? "none" : "";
+                    });
+
+                    document.addEventListener('keydown', (e) => {
+                        if (e.key === 'Escape') {
+                            searchInput.value = '';
+                            searchInput.dispatchEvent(new Event('input'));
+                            searchInput.blur();
+                        }
+                    });
+                }
+            });
+        </script>
+
+        <style>
+            :root {
+                --indigo: #6366f1;
+                --indigo-light: #eef2ff;
+                --text-dark: #334155;
+                --text-muted: #64748b;
+                --border-color: #f1f5f9;
+                --bg-light: #f8fafc;
+            }
+
+            .no-select-global {
+                user-select: none;
+                -webkit-user-select: none;
+            }
+
+            .text-selectable {
+                user-select: text !important;
+                -webkit-user-select: text !important;
+            }
+
+            .employees-viewport {
+                display: flex;
+                flex-direction: column;
+                min-height: calc(100vh - var(--topbar-h) - 40px);
+                gap: 10px;
+                background: #fbfcfe;
+            }
+
+            /* Header */
+            .header-icon-box {
+                width: 48px;
+                height: 48px;
+                background: white;
+                border: 1px solid var(--border-color);
+                border-radius: 12px;
+                color: var(--indigo);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.3rem;
+            }
+
+            .header-title {
+                color: var(--text-dark);
+                letter-spacing: -0.5px;
+            }
+
+            .date-capsule {
+                background: white;
+                padding: 8px 16px;
+                border-radius: 12px;
+                font-weight: 700;
+                color: var(--text-muted);
+                font-size: 0.8rem;
+                border: 1px solid var(--border-color);
+            }
+
+            .text-indigo {
+                color: var(--indigo);
+            }
+
+            /* Dept Selector - Light Modern */
+            .dept-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+                gap: 15px;
+            }
+
+            .dept-card-light {
+                background: white;
+                padding: 15px 20px;
+                border-radius: 16px;
+                display: flex;
+                align-items: center;
+                gap: 15px;
+                text-decoration: none;
+                color: var(--text-dark);
+                border: 1px solid var(--border-color);
+                transition: all 0.2s ease;
+                position: relative;
+            }
+
+            .dept-card-light:hover {
+                background: #fcfdfe;
+                border-color: var(--indigo);
+                transform: translateY(-2px);
+            }
+
+            .dept-card-light.active {
+                background: var(--indigo-light);
+                border-color: var(--indigo);
+                color: var(--indigo);
+                box-shadow: 0 4px 12px rgba(99, 102, 241, 0.08);
+            }
+
+            .dept-light-icon {
+                width: 40px;
+                height: 40px;
+                background: var(--bg-light);
+                color: var(--indigo);
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.1rem;
+            }
+
+            .active .dept-light-icon {
+                background: var(--indigo);
+                color: white;
+            }
+
+            .dept-light-name {
+                font-weight: 700;
+                font-size: 0.95rem;
+                display: block;
+            }
+
+            .dept-light-count {
+                font-size: 0.75rem;
+                color: var(--text-muted);
+                font-weight: 600;
+            }
+
+            .active .dept-light-count {
+                color: var(--indigo);
+                opacity: 0.8;
+            }
+
+            .active-dot {
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                width: 6px;
+                height: 6px;
+                background: var(--indigo);
+                border-radius: 50%;
+            }
+
+            /* Main Table Card */
+            .content-body {
+                flex: 1;
+                min-height: 0;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .data-card-light {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                background: white;
+                border-radius: 20px;
+                border: 1px solid var(--border-color);
+            }
+
+            .dept-badge-label {
+                background: var(--indigo-light);
+                color: var(--indigo);
+                padding: 6px 14px;
+                border-radius: 8px;
+                font-weight: 800;
+                font-size: 0.85rem;
+            }
+
+            .staff-count-label {
+                color: var(--text-muted);
+                font-weight: 700;
+                font-size: 0.85rem;
+            }
+
+            /* Search Input */
+            .search-container-light {
+                position: relative;
+                display: flex;
+                align-items: center;
+                min-width: 280px;
+            }
+
+            .search-icon-light {
+                position: absolute;
+                left: 14px;
+                color: var(--text-muted);
+                pointer-events: none;
+            }
+
+            .search-input-light {
+                width: 100%;
+                padding: 10px 45px 10px 38px;
+                background: var(--bg-light);
+                border: 1px solid var(--border-color);
+                border-radius: 12px;
+                outline: none;
+                transition: 0.2s;
+                font-weight: 600;
+                font-size: 0.85rem;
+                color: var(--text-dark);
+            }
+
+            .search-input-light:focus {
+                background: white;
+                border-color: var(--indigo);
+                box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.05);
+            }
+
+            .esc-hint {
+                position: absolute;
+                right: 12px;
+                background: white;
+                border: 1px solid var(--border-color);
+                padding: 1px 6px;
+                border-radius: 4px;
+                font-size: 0.6rem;
+                font-weight: 800;
+                color: var(--text-muted);
+            }
+
+            /* Table */
+            .table-container {
+                flex: 1;
+                overflow-y: auto;
+            }
+
+            .table-light-style thead th {
+                background: white;
+                color: var(--text-muted);
+                font-size: 0.65rem;
+                font-weight: 800;
+                letter-spacing: 1px;
+                padding: 14px 16px;
+                border-bottom: 1px solid var(--border-color);
+                position: sticky;
+                top: 0;
+                z-index: 10;
+            }
+
+            .staff-row-light {
+                border-bottom: 1px solid var(--border-color);
+                transition: 0.1s;
+            }
+
+            .staff-row-light:hover {
+                background: var(--bg-light);
+            }
+
+            .staff-cell {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .avatar-light {
+                width: 38px;
+                height: 38px;
+                background: var(--bg-light);
+                border: 1px solid var(--border-color);
+                color: var(--accent);
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 800;
+                position: relative;
+            }
+
+            .active-pulse {
+                position: absolute;
+                -top: 2px;
+                -right: 2px;
+                width: 10px;
+                height: 10px;
+                background: #10b981;
+                border: 2px solid white;
+                border-radius: 50%;
+            }
+
+            .staff-info .name {
+                font-weight: 700;
+                font-size: 0.9rem;
+                color: var(--text-dark);
+                display: block;
+            }
+
+            .staff-info .role-sub {
+                font-size: 0.72rem;
+                color: var(--text-muted);
+                font-weight: 500;
+            }
+
+            .contact-text {
+                color: var(--text-dark);
+                font-size: 0.82rem;
+                font-weight: 500;
+            }
+
+            .access-badge {
+                padding: 4px 10px;
+                border-radius: 6px;
+                font-size: 0.65rem;
+                font-weight: 800;
+            }
+
+            .access-badge.admin {
+                background: #fee2e2;
+                color: #ef4444;
+            }
+
+            .access-badge.user {
+                background: #f1f5f9;
+                color: #64748b;
+            }
+
+            /* Empty States */
+            .welcome-section-light {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+                background: white;
+                border-radius: 20px;
+                border: 1px dashed var(--border-color);
+            }
+
+            .icon-stack {
+                position: relative;
+                width: 60px;
+                height: 60px;
+            }
+
+            .welcome-icon-main {
+                font-size: 3.5rem;
+                color: var(--indigo);
+                opacity: 0.15;
+            }
+
+            .icon-sub-1,
+            .icon-sub-2 {
+                position: absolute;
+                font-size: 1.2rem;
+                color: var(--indigo);
+                opacity: 0.2;
+            }
+
+            .icon-sub-1 {
+                top: -5px;
+                right: -15px;
+            }
+
+            .icon-sub-2 {
+                bottom: -5px;
+                left: -15px;
+            }
+
+            .custom-scrollbar::-webkit-scrollbar {
+                width: 4px;
+            }
+
+            .custom-scrollbar::-webkit-scrollbar-thumb {
+                background: #e2e8f0;
+                border-radius: 10px;
+            }
+
+            @media (max-width: 768px) {
+                .dept-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .search-container-light {
+                    min-width: 100%;
+                }
+
+                .data-card-light {
+                    border-radius: 12px;
+                }
+            }
+        </style>
+
+        <%- include('../partials/layout_foot') %>

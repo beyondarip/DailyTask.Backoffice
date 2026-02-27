@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preview Lampiran - <%= user.company %>
+    </title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+
+        <% var brandColor='#007AFF';
+        var companyName=(user && user.company) ? user.company : "";
+        var compUpper=companyName.toUpperCase();
+
+        if (compUpper.includes('WONG HANG')) brandColor='#FF0000';
+        else if (compUpper.includes('AKARSA GARMENT')) brandColor='#A50000';
+        else if (compUpper.includes('AKSA DIGITEX') || compUpper.includes('AKSADIGITEX')) brandColor='#FFC107';
+        else if (compUpper.includes('BITREN')) brandColor='#28A745';
+        else if (compUpper.includes('ALAS KAKI')) brandColor='#0056B3';
+        else if (compUpper.includes('ALFA DINAMIS')) brandColor='#17A2B8';
+        else if (compUpper.includes('DELTA SINERGI')) brandColor='#343A40';
+
+        %> :root {
+            --main: <%=brandColor %>;
+        }
+
+        body {
+            background: #f0f2f5;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: #2d3436;
+            animation: fadeInPage 0.5s ease-out forwards;
+            opacity: 0;
+            min-height: 100vh;
+            caret-color: transparent;
+        }
+
+        @keyframes fadeInPage {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-out {
+            animation: fadeOutPage 0.4s ease-in forwards !important;
+        }
+
+        @keyframes fadeOutPage {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            to {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+        }
+
+        .top-bar {
+            background: white;
+            border-bottom: 3px solid var(--main);
+            padding: 20px 0;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+        }
+
+        .bg-rejected {
+            background: #fff1f0;
+            color: #cf1322;
+        }
+
+        /* Custom Premium Dropdown */
+        .dropdown-menu {
+            border-radius: 20px !important;
+            padding: 12px !important;
+            min-width: 250px !important;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15) !important;
+            border: 1px solid rgba(0, 0, 0, 0.05) !important;
+            margin-top: 10px !important;
+            z-index: 10000 !important;
+            animation: dropdownScale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes dropdownScale {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .dropdown-item {
+            border-radius: 12px !important;
+            padding: 12px 18px !important;
+            font-weight: 700 !important;
+            font-size: 0.85rem !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 15px !important;
+            transition: all 0.2s ease !important;
+            color: #555 !important;
+            margin-bottom: 4px !important;
+        }
+
+        .dropdown-item i {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8f9fa;
+            border-radius: 10px;
+            font-size: 1rem;
+            color: #666;
+            transition: all 0.2s ease;
+        }
+
+        .dropdown-item:hover {
+            background: #f8f9fa !important;
+            color: var(--main) !important;
+            transform: translateX(5px);
+        }
+
+        .dropdown-item:hover i {
+            background: var(--main);
+            color: #fff;
+        }
+
+        .dropdown-item.active {
+            background: var(--main) !important;
+            color: #fff !important;
+        }
+
+        .dropdown-item.active i {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+
+        .dropdown-divider {
+            margin: 10px 0 !important;
+            opacity: 0.1 !important;
+        }
+
+        .btn-back {
+            background: #f1f2f6;
+            color: #555;
+            text-decoration: none;
+            font-weight: 700;
+            padding: 10px 22px;
+            border-radius: 50px;
+            border: 1px solid #e0e0e0;
+            transition: 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-back:hover {
+            background: var(--main);
+            color: <%=(brandColor=='#FFC107') ? '#000': '#fff' %>;
+            border-color: var(--main);
+        }
+
+        .preview-card {
+            background: white;
+            border-radius: 20px;
+            border: 1px solid #eee;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+            overflow: hidden;
+            margin-bottom: 25px;
+            transition: transform 0.3s;
+        }
+
+        .preview-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .preview-card .card-label {
+            background: #fafafa;
+            padding: 15px 25px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .preview-card .card-label span {
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: #555;
+        }
+
+        .preview-card .card-body-custom {
+            padding: 25px;
+            text-align: center;
+        }
+
+        .preview-card img {
+            max-width: 100%;
+            max-height: 75vh;
+            border-radius: 12px;
+            object-fit: contain;
+            background: #f8f9fa;
+            border: 1px solid #eee;
+        }
+
+        .preview-card video {
+            max-width: 100%;
+            max-height: 75vh;
+            border-radius: 12px;
+        }
+
+        .file-icon-box {
+            padding: 40px;
+            border: 2px dashed #e0e0e0;
+            border-radius: 16px;
+            background: #fafafa;
+        }
+
+        .file-icon-box i {
+            font-size: 4rem;
+            margin-bottom: 15px;
+        }
+
+        .btn-download {
+            background: var(--main);
+            color: <%=(brandColor=='#FFC107') ? '#000': '#fff' %>;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            text-decoration: none;
+            transition: 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-download:hover {
+            filter: brightness(90%);
+            color: <%=(brandColor=='#FFC107') ? '#000': '#fff' %>;
+            transform: translateY(-2px);
+        }
+
+        .info-badge {
+            background: <%=brandColor %>15;
+            color: <%=brandColor %>;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #aaa;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 15px;
+            opacity: 0.3;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="top-bar">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="badge mb-1"
+                        style="background: var(--main); color: <%= (brandColor=='#FFC107') ? '#000':'#fff' %>;">
+                        <%= companyName %>
+                    </span>
+                    <div class="dropdown">
+                        <h4 class="fw-bold m-0 d-flex align-items-center cursor-pointer" id="deptDropdown"
+                            data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer;">
+                            <%= (locals.currentDept && locals.currentDept !=='ALL' ) ? locals.currentDept
+                                : 'Preview Lampiran' %>
+                                <i class="fas fa-chevron-down ms-2 fs-6 opacity-50"></i>
+                        </h4>
+                        <ul class="dropdown-menu shadow-lg" aria-labelledby="deptDropdown">
+                            <li><a class="dropdown-item <%= (locals.currentDept === 'SALES MARKETING') ? 'active' : '' %>"
+                                    href="/marketing">
+                                    <i class="fas fa-bullhorn"></i> SALES MARKETING</a></li>
+                            <li><a class="dropdown-item <%= (locals.currentDept === 'HR') ? 'active' : '' %>"
+                                    href="/hr">
+                                    <i class="fas fa-users-cog"></i> HR</a></li>
+                            <li><a class="dropdown-item <%= (locals.currentDept === 'FINANCE') ? 'active' : '' %>"
+                                    href="/finance">
+                                    <i class="fas fa-wallet"></i> FINANCE</a></li>
+                            <li><a class="dropdown-item <%= (locals.currentDept === 'PURCHASING') ? 'active' : '' %>"
+                                    href="/purchasing">
+                                    <i class="fas fa-shopping-cart"></i> PURCHASING</a></li>
+                            <li><a class="dropdown-item <%= (locals.currentDept === 'PRODUKSI') ? 'active' : '' %>"
+                                    href="/produksi">
+                                    <i class="fas fa-industry"></i> PRODUKSI</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item <%= (locals.currentDept === 'ALL' || !locals.currentDept) ? 'active' : '' %>"
+                                    href="/dashboard">
+                                    <i class="fas fa-th-large"></i> DAILY REPORT</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <a href="/dashboard" class="btn-back">
+                    <i class="fas fa-arrow-left"></i> Kembali
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container" style="max-width: 900px;">
+        <% if (files && files.length> 0) { %>
+            <% files.forEach(function(file, idx) { %>
+                <% if (file) { var fileName=file.split('/').pop(); var ext=fileName.split('.').pop().toLowerCase(); var
+                    isImage=['jpg','jpeg','png','gif','webp','bmp','svg'].includes(ext); var
+                    isVideo=['mp4','webm','ogg','mov'].includes(ext); var isPdf=ext==='pdf' ; %>
+                    <div class="preview-card">
+                        <div class="card-label">
+                            <span><i class="fas fa-paperclip me-2"></i>Lampiran <%= idx + 1 %> — <%= fileName %></span>
+                            <a href="<%= file %>" target="_blank" class="btn-download btn-sm"
+                                style="padding: 6px 16px; font-size: 0.8rem;">
+                                <i class="fas fa-download"></i> Download
+                            </a>
+                        </div>
+                        <div class="card-body-custom">
+                            <% if (isImage) { %>
+                                <img src="<%= file %>" alt="<%= fileName %>"
+                                    onerror="this.parentElement.innerHTML='<div class=\'alert alert-danger\'>Gambar gagal dimuat</div>'">
+                                <% } else if (isVideo) { %>
+                                    <video controls>
+                                        <source src="<%= file %>" type="video/<%= ext %>">
+                                        Browser Anda tidak mendukung tag video.
+                                    </video>
+                                    <% } else if (isPdf) { %>
+                                        <embed src="<%= file %>" type="application/pdf">
+                                        <% } else { %>
+                                            <a href="<%= file %>" target="_blank" class="btn-download btn-sm"
+                                                style="padding: 4px 12px; font-size: 0.8rem;">
+                                                <i class="fas fa-download"></i> Download
+                                            </a>
+                        </div>
+                        <% } %>
+                    </div>
+    </div>
+    <% }); %>
+        <% } else { %>
+            <div class="preview-card">
+                <div class="empty-state">
+                    <i class="fas fa-folder-open"></i>
+                    <h5 class="fw-bold">Tidak Ada Lampiran</h5>
+                    <p class="text-muted">Laporan ini tidak memiliki file lampiran.</p>
+                    <a href="/dashboard" class="btn-download mt-2">
+                        <i class="fas fa-arrow-left"></i> Kembali
+                    </a>
+                </div>
+            </div>
+            <% } %>
+                </div>
+
+                <script>
+                    // --- TRANSITION LOGIC ---
+                    document.querySelectorAll('a').forEach(link => {
+                        link.addEventListener('click', function (e) {
+                            if (this.hostname === window.location.hostname &&
+                                !this.getAttribute('target') &&
+                                !this.href.includes('logout')) {
+                                e.preventDefault();
+                                document.body.classList.add('fade-out');
+                                setTimeout(() => { window.location.href = this.href; }, 400);
+                            }
+                        });
+                    });
+                </script>
+                <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

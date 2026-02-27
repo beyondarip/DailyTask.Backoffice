@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Executive Summary - <%= user.company %>
+    </title>
+
+    <!-- Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+        /* --- THEME LOGIC --- */
+        <% var brandColor='#007AFF';
+        var companyName=(user && user.company) ? user.company : "Perusahaan";
+        var compUpper=companyName.toUpperCase();
+
+        if (compUpper.includes('WONG HANG')) brandColor='#D32F2F';
+        else if (compUpper.includes('AKARSA GARMENT')) brandColor='#C62828';
+        else if (compUpper.includes('AKSA DIGITEX') || compUpper.includes('AKSADIGITEX')) brandColor='#FFA000';
+        else if (compUpper.includes('BITREN')) brandColor='#388E3C';
+        else if (compUpper.includes('ALAS KAKI')) brandColor='#1976D2';
+        else if (compUpper.includes('ALFA DINAMIS')) brandColor='#0097A7';
+        else if (compUpper.includes('DELTA SINERGI')) brandColor='#455A64';
+        else if (compUpper.includes('AKARSA HEKSA')) brandColor='#0288D1';
+
+        %> :root {
+            --primary: <%=brandColor %>;
+            --primary-soft: <%=brandColor %>15;
+            /* 15% opacity */
+            --bg-body: #f4f6f8;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            padding-bottom: 40px;
+            caret-color: transparent;
+        }
+
+        /* --- ANIMATIONS --- */
+        .fade-in {
+            animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .delay-100 {
+            animation-delay: 100ms;
+        }
+
+        .delay-200 {
+            animation-delay: 200ms;
+        }
+
+        .delay-300 {
+            animation-delay: 300ms;
+        }
+
+        /* --- COMPONENTS --- */
+        .navbar-custom {
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 16px 0;
+            margin-bottom: 32px;
+        }
+
+        .page-title {
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: #0f172a;
+            margin: 0;
+        }
+
+        .company-badge {
+            background-color: var(--primary-soft);
+            color: var(--primary);
+            font-weight: 700;
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            display: inline-block;
+            margin-bottom: 4px;
+        }
+
+        .btn-back {
+            background: white;
+            border: 1px solid #e2e8f0;
+            color: var(--text-main);
+            font-weight: 600;
+            padding: 10px 20px;
+            border-radius: 12px;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-back:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            color: #0f172a;
+            transform: translateY(-1px);
+        }
+
+        /* --- CARDS --- */
+        .stat-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 24px;
+            height: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.08);
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            margin-bottom: 16px;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 4px;
+            color: #0f172a;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        /* Chart Card */
+        .chart-card {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            border: 1px solid #e2e8f0;
+            height: 100%;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .chart-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0;
+        }
+
+        /* Variant Colors */
+        .bg-pending {
+            background-color: #fffbeb;
+            color: #b45309;
+        }
+
+        .bg-approved {
+            background-color: #f0fdf4;
+            color: #15803d;
+        }
+
+        .bg-rejected {
+            background: #fff1f0;
+            color: #cf1322;
+        }
+
+        /* Custom Premium Dropdown */
+        .dropdown-menu {
+            border-radius: 20px !important;
+            padding: 12px !important;
+            min-width: 250px !important;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15) !important;
+            border: 1px solid rgba(0, 0, 0, 0.05) !important;
+            margin-top: 10px !important;
+            z-index: 10000 !important;
+            animation: dropdownScale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes dropdownScale {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .dropdown-item {
+            border-radius: 12px !important;
+            padding: 12px 18px !important;
+            font-weight: 700 !important;
+            font-size: 0.85rem !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 15px !important;
+            transition: all 0.2s ease !important;
+            color: #555 !important;
+            margin-bottom: 4px !important;
+        }
+
+        .dropdown-item i {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8f9fa;
+            border-radius: 10px;
+            font-size: 1rem;
+            color: #666;
+            transition: all 0.2s ease;
+        }
+
+        .dropdown-item:hover {
+            background: #f8f9fa !important;
+            color: var(--main) !important;
+            transform: translateX(5px);
+        }
+
+        .dropdown-item:hover i {
+            background: var(--main);
+            color: #fff;
+        }
+
+        .dropdown-item.active {
+            background: var(--main) !important;
+            color: #fff !important;
+        }
+
+        .dropdown-item.active i {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+
+        .dropdown-divider {
+            margin: 10px 0 !important;
+            opacity: 0.1 !important;
+        }
+
+        .btn-main {
+            background-color: #f0f9ff;
+            color: #0369a1;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar-custom fade-in">
+        <div class="container d-flex justify-content-between align-items-center">
+            <div>
+                <span class="company-badge mb-2">
+                    <%= companyName %>
+                </span>
+                <div class="dropdown">
+                    <h1 class="page-title d-flex align-items-center cursor-pointer" id="deptDropdown"
+                        data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer;">
+                        <%= (locals.currentDept && locals.currentDept !=='ALL' ) ? locals.currentDept
+                            : 'Executive Summary' %>
+                            <i class="fas fa-chevron-down ms-2 fs-6 opacity-50"></i>
+                    </h1>
+                    <ul class="dropdown-menu shadow-lg" aria-labelledby="deptDropdown">
+                        <li><a class="dropdown-item <%= (locals.currentDept === 'SALES MARKETING') ? 'active' : '' %>"
+                                href="/marketing">
+                                <i class="fas fa-bullhorn"></i> SALES MARKETING</a></li>
+                        <li><a class="dropdown-item <%= (locals.currentDept === 'HR') ? 'active' : '' %>" href="/hr">
+                                <i class="fas fa-users-cog"></i> HR</a></li>
+                        <li><a class="dropdown-item <%= (locals.currentDept === 'FINANCE') ? 'active' : '' %>"
+                                href="/finance">
+                                <i class="fas fa-wallet"></i> FINANCE</a></li>
+                        <li><a class="dropdown-item <%= (locals.currentDept === 'PURCHASING') ? 'active' : '' %>"
+                                href="/purchasing">
+                                <i class="fas fa-shopping-cart"></i> PURCHASING</a></li>
+                        <li><a class="dropdown-item <%= (locals.currentDept === 'PRODUKSI') ? 'active' : '' %>"
+                                href="/produksi">
+                                <i class="fas fa-industry"></i> PRODUKSI</a></li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li><a class="dropdown-item <%= (locals.currentDept === 'ALL' || !locals.currentDept) ? 'active' : '' %>"
+                                href="/dashboard">
+                                <i class="fas fa-th-large"></i> DAILY REPORT</a></li>
+                    </ul>
+                </div>
+            </div>
+            <a href="/dashboard" class="btn-back">
+                <i class="fas fa-arrow-left"></i>
+                <span>Kembali</span>
+            </a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Kalkulasi Data -->
+        <% var p=0, a=0, r=0, total=0; if(typeof reports !=='undefined' ) { reports.forEach(function(rep) { total++;
+            if(rep.status==='Pending' ) p++; else if(rep.status==='Approved' ) a++; else if(rep.status==='Rejected' )
+            r++; }); } %>
+
+            <!-- 1. Top Stats Row -->
+            <div class="row g-4 mb-5 fade-in delay-100">
+                <!-- Total Reports -->
+                <div class="col-md-3 col-sm-6">
+                    <div class="stat-card">
+                        <div class="stat-icon bg-total">
+                            <i class="fas fa-folder-open"></i>
+                        </div>
+                        <div class="stat-value">
+                            <%= total %>
+                        </div>
+                        <div class="stat-label">Total Laporan Masuk</div>
+                    </div>
+                </div>
+
+                <!-- Approved -->
+                <div class="col-md-3 col-sm-6">
+                    <div class="stat-card">
+                        <div class="stat-icon bg-approved">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="stat-value text-success">
+                            <%= a %>
+                        </div>
+                        <div class="stat-label">Disetujui (Approved)</div>
+                    </div>
+                </div>
+
+                <!-- Pending -->
+                <div class="col-md-3 col-sm-6">
+                    <div class="stat-card">
+                        <div class="stat-icon bg-pending">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-value text-warning">
+                            <%= p %>
+                        </div>
+                        <div class="stat-label">Menunggu Review</div>
+                    </div>
+                </div>
+
+                <!-- Rejected -->
+                <div class="col-md-3 col-sm-6">
+                    <div class="stat-card">
+                        <div class="stat-icon bg-rejected">
+                            <i class="fas fa-times"></i>
+                        </div>
+                        <div class="stat-value text-danger">
+                            <%= r %>
+                        </div>
+                        <div class="stat-label">Ditolak (Rejected)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Charts Section -->
+            <div class="row g-4 fade-in delay-200">
+                <!-- Chart: Status Distribution -->
+                <div class="col-lg-4">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h5 class="chart-title">Distribusi Status</h5>
+                            <button class="btn btn-sm btn-light rounded-pill px-3 py-1 fw-bold text-muted"
+                                style="font-size: 0.75rem;">
+                                Realtime
+                            </button>
+                        </div>
+                        <div style="height: 300px; position: relative;">
+                            <canvas id="statusChart"></canvas>
+                        </div>
+                        <div class="mt-4 text-center">
+                            <small class="text-muted d-block">Persentase keberhasilan laporan</small>
+                            <div class="d-flex justify-content-center gap-3 mt-2">
+                                <div class="d-flex align-items-center small text-muted"><span
+                                        class="badge rounded-circle bg-success p-1 me-2"> </span>Appr</div>
+                                <div class="d-flex align-items-center small text-muted"><span
+                                        class="badge rounded-circle bg-warning p-1 me-2"> </span>Pend</div>
+                                <div class="d-flex align-items-center small text-muted"><span
+                                        class="badge rounded-circle bg-danger p-1 me-2"> </span>Rej</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart: Employee Performance -->
+                <div class="col-lg-8">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h5 class="chart-title">Aktivitas Karyawan</h5>
+                            <div class="text-muted small">
+                                Data Realtime
+                            </div>
+                        </div>
+                        <div style="height: 350px;">
+                            <canvas id="employeeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </div>
+
+    <!-- Hidden Data Bridge -->
+    <div id="data-stats" data-pending="<%= p %>" data-approved="<%= a %>" data-rejected="<%= r %>">
+    </div>
+    <div id="data-reports" data-json='<%- JSON.stringify(reports || []) %>'></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // --- 1. SETUP DATA ---
+            const statsEl = document.getElementById('data-stats');
+            const dataP = parseInt(statsEl.getAttribute('data-pending')) || 0;
+            const dataA = parseInt(statsEl.getAttribute('data-approved')) || 0;
+            const dataR = parseInt(statsEl.getAttribute('data-rejected')) || 0;
+
+            const reportsEl = document.getElementById('data-reports');
+            const reports = JSON.parse(reportsEl.getAttribute('data-json'));
+
+            // Get Primary Color from CSS
+            const style = getComputedStyle(document.body);
+            const brandColor = style.getPropertyValue('--primary').trim();
+            const brandSoft = style.getPropertyValue('--primary-soft').trim();
+
+            // --- 2. CHART: STATUS DISTRIBUTION (Doughnut) ---
+            const ctxStatus = document.getElementById('statusChart').getContext('2d');
+            new Chart(ctxStatus, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Approved', 'Pending', 'Rejected'],
+                    datasets: [{
+                        data: [dataA, dataP, dataR],
+                        backgroundColor: [
+                            '#10b981', // Emerald 500
+                            '#f59e0b', // Amber 500
+                            '#ef4444'  // Red 500
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '75%',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#fff',
+                            titleColor: '#1e293b',
+                            bodyColor: '#1e293b',
+                            borderColor: '#e2e8f0',
+                            borderWidth: 1,
+                            padding: 12,
+                            boxPadding: 4
+                        }
+                    }
+                }
+            });
+
+            // --- 3. CHART: EMPLOYEE ACTIVITY (Bar) ---
+            const memberStats = {}; // Gunakan object untuk mapping stats
+
+            if (reports && reports.length > 0) {
+                reports.forEach(r => {
+                    const name = r.full_name || 'Tanpa Nama';
+                    const firstName = name.split(' ')[0];
+                    const position = r.position || '-';
+
+                    // Kita gunakan nama sebagai key untuk grouping
+                    // Asumsi: Nama depan unik atau kita group by nama depan saja
+                    if (!memberStats[firstName]) {
+                        memberStats[firstName] = {
+                            count: 0,
+                            position: position
+                        };
+                    }
+                    memberStats[firstName].count += 1;
+                });
+            }
+
+            // Siapkan data untuk Chart.js
+            // Label multiline: ['Adit', 'IT Staff']
+            const chartLabels = Object.keys(memberStats).map(name => {
+                return [name, memberStats[name].position];
+            });
+
+            const chartData = Object.keys(memberStats).map(name => memberStats[name].count);
+
+            const ctxEmp = document.getElementById('employeeChart').getContext('2d');
+
+            // Create gradient
+            let gradient = ctxEmp.createLinearGradient(0, 0, 0, 400);
+            gradient.addColorStop(0, brandColor);
+            gradient.addColorStop(1, '#ffffff'); // Fade to white
+
+            new Chart(ctxEmp, {
+                type: 'bar',
+                data: {
+                    labels: chartLabels, // Array of Arrays untuk multiline
+                    datasets: [{
+                        label: 'Laporan Dikirim',
+                        data: chartData,
+                        backgroundColor: brandColor,
+                        borderRadius: 6,
+                        barPercentage: 0.5,
+                        categoryPercentage: 0.8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#1e293b',
+                            padding: 12,
+                            cornerRadius: 8,
+                            displayColors: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: '#f1f5f9',
+                                borderDash: [4, 4]
+                            },
+                            ticks: { font: { family: 'Plus Jakarta Sans', size: 12 } }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { family: 'Plus Jakarta Sans', weight: '600' } }
+                        }
+                    },
+                    animation: {
+                        duration: 2000,
+                        easing: 'easeOutQuart'
+                    }
+                }
+            });
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
