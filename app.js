@@ -51,13 +51,25 @@ app.set('trust proxy', 1); // Mengizinkan pembacaan IP di belakang proxy (Nginx/
 
 
 // ─── DATABASE ─────────────────────────────────────────────────────────────────
-const pool = new Pool({
+// Aiven PostgreSQL membutuhkan SSL; gunakan ca.pem untuk verifikasi sertifikat
+const poolConfig = {
     user: process.env.DB_USER,
     host: process.env.DB_HOST,
     database: process.env.DB_NAME,
     password: process.env.DB_PASSWORD,
     port: process.env.DB_PORT,
-});
+};
+
+// Aktifkan SSL jika ca.pem ada (wajib untuk Aiven Cloud)
+const caPath = path.join(__dirname, 'ca.pem');
+if (fs.existsSync(caPath)) {
+    poolConfig.ssl = {
+        rejectUnauthorized: true,
+        ca: fs.readFileSync(caPath).toString(),
+    };
+}
+
+const pool = new Pool(poolConfig);
 
 // ─── MIDDLEWARE ────────────────────────────────────────────────────────────────
 app.set('view engine', 'ejs');
@@ -72,13 +84,19 @@ app.use(helmet({
     crossOriginEmbedderPolicy: false
 }));
 
+const pgSession = require('connect-pg-simple')(session);
+
 // Session
 app.use(session({
+    store: new pgSession({
+        pool: pool,
+        tableName: 'session' // pastikan tabel session sudah dibuat di database
+    }),
     secret: process.env.SESSION_SECRET || 'dailytracker_secret_v2_2026',
     resave: false,
     saveUninitialized: false,
     cookie: {
-        maxAge: 24 * 60 * 60 * 1000,
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax'
@@ -2801,6 +2819,13 @@ app.post('/director/notif/read-all', isDirectorAuth, async (req, res) => {
 });
 
 
+// ── MOBILE API ROUTES ──────────────────────────────────────────────────────────
+const apiRouter = require('./routes/api')(pool, upload, {
+    isFinanceDept, isProduksiDept, getNotifCount, getNotifications,
+    checkAndNotifyHighValueReport, getReportFiles, executeDeleteFiles
+});
+app.use('/api', apiRouter);
+
 // ── ERROR HANDLER ──────────────────────────────────────────────────────────────
 
 app.use((req, res) => {
@@ -2814,8 +2839,11 @@ app.use((err, req, res, next) => {
 
 // ── START SERVER ───────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`=========================================`);
-    console.log(`🚀 Server berjalan di http://localhost:${PORT}`);
-    console.log(`=========================================`);
-});
+    app.listen(PORT, () => {
+        console.log(`=========================================`);
+        console.log(`🚀 Server berjalan di http://localhost:${PORT}`);
+        console.log(`=========================================`);
+    });
+
+// Export app untuk Vercel
+module.exports = app;
